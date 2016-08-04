@@ -45,15 +45,21 @@ namespace daw {
 			FutureValueImpl( ): 
 					m_value_mutex{ },
 					m_value_fut{ }, 
-					m_value{ }, 
+					m_value( nullptr ), 
 					m_has_retrieved{ true } { }
 
 
 			FutureValueImpl( FutureValueImpl && other ): 
 					m_value_mutex{ },
-					m_value_fut{ ::std::move( other.m_value_fut ) }, 
-					m_value{ ::std::exchange( other.m_value, nullptr ) }, 
+					m_value_fut( ::std::move( other.m_value_fut ) ), 
+					m_value( ::std::exchange( other.m_value, nullptr ) ), 
 					m_has_retrieved{ std::exchange( other.m_has_retrieved, true ) } { }
+
+			FutureValueImpl( ::std::future<T> && rhs ):
+					m_value_mutex{ },
+					m_value_fut{ std::move( rhs ) },
+					m_value( nullptr ), 
+					m_has_retrieved{ false } { }
 
 
 			FutureValueImpl( FutureValueImpl const & ) = delete;
@@ -82,11 +88,9 @@ namespace daw {
 			template<typename F>
 			FutureValueImpl( F && func, std::launch launch_policy ):
 					m_value_mutex{ },
-					m_value_fut{ std::async( launch_policy, std::forward<F>( func ) ) },
-					m_value{ }, 
+					m_value_fut( std::async( launch_policy, std::forward<F>( func ) ) ),
+					m_value{ nullptr }, 
 					m_has_retrieved{ false } { }
-
-
 
 			template<typename F>
 			void reset( F && func, std::launch launch_policy ) {

@@ -174,14 +174,16 @@ namespace daw {
 					}
 				}
 				on_completed( );
-				m_basal_tests_fut = std::move( ::std::async( ::std::launch::async, ::std::bind( &do_basal_test, ::std::cref( result ) ) ) );
+				m_basal_tests_fut = daw::FutureValue<basal_tests_t>( ::std::bind( &do_basal_test, ::std::cref( result ) ) );
 				return result;
 			}
 		}
 
-		PumpDataAnalysis::PumpDataAnalysis( daw::data::parse_csv_data_param param, ::std::function<void( )> on_completed ): m_data_table_fut( ::std::async( ::std::launch::async, [&, param, on_completed]( ) { 
+		PumpDataAnalysis::PumpDataAnalysis( daw::data::parse_csv_data_param param, ::std::function<void( )> on_completed ): 
+				m_data_table_fut( [&, param, on_completed]( ) { 
+
 			return parse_csv( param, on_completed ); 
-		} ) ) { }
+		} ) { }
 
 		const daw::data::DataTable& PumpDataAnalysis::data_table( ) const {
 			return m_data_table_fut.get( );

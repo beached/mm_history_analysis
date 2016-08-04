@@ -42,8 +42,12 @@ namespace daw {
 
 		FutureValue( FutureValue const & ) = delete;
 		FutureValue& operator=( FutureValue const & ) = delete;
+
 		FutureValue( FutureValue && rhs ): 
 				m_impl( std::move( rhs.m_impl ) ) { }
+
+		FutureValue( ::std::future<T> && other ):
+				m_impl( std::move( other ) ) { }
 
 		FutureValue & operator=( FutureValue && rhs ) {
 			if( this != &rhs ) {

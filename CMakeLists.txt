@@ -13,7 +13,7 @@ set( Boost_USE_STATIC_RUNTIME OFF )
 
 add_definitions( -DwxUSE_GUI )
 
-find_package( Boost 1.58.0 REQUIRED COMPONENTS system filesystem regex unit_test_framework program_options iostreams )
+find_package( Boost 1.58.0 REQUIRED COMPONENTS date_time system filesystem regex unit_test_framework program_options iostreams )
 
 if( ${CMAKE_CXX_COMPILER_ID} STREQUAL 'MSVC' )
 	add_compile_options( -D_WIN32_WINNT=0x0601 )
