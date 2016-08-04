@@ -36,13 +36,13 @@
 //////////////////////////////////////////////////////////////////////////
 struct PanelPumpDataAnalyis: public wxMDIChildFrame {
 
-	PanelPumpDataAnalyis( wxMDIParentFrame *parent, wxApp* app, const ::std::string& filename );
+	PanelPumpDataAnalyis( wxMDIParentFrame * parent, wxApp * app, ::std::string filename );
 	virtual ~PanelPumpDataAnalyis( );
 
 	static size_t GetChildrenCount( ) { return ms_number_children; }
 
-	void add_basal_test_page( wxWindow* child, const wxString& title, const bool bring_to_front = false );
-	void add_top_page( wxWindow* child, const wxString& title, const bool bring_to_front = false );
+	void add_basal_test_page( wxWindow * child, wxString const & title, bool const bring_to_front = false );
+	void add_top_page( wxWindow * child, wxString const & title, bool const bring_to_front = false );
 	void add_menu_bar( wxMenuBar* menu );
 	
 	inline wxWindow* GetBasalTestWindow( ) {
@@ -78,12 +78,12 @@ private:
 	void update_status_callback( ::std::string status, wxApp* app );
 
 	static size_t ms_number_children;
-	wxNotebook* m_notebook_main;
-	wxNotebook* m_notebook_basal_tests;
-	wxGrid* m_grid;
-	wxApp* m_app;
+	wxNotebook * m_notebook_main;
+	wxNotebook * m_notebook_basal_tests;
+	wxGrid * m_grid;
+	wxApp * m_app;
 	daw::data::CSVTable m_table_data;
-	const ::std::string m_filename;
+	::std::string const m_filename;
 	std::thread m_backgroundthread;
 
 	DECLARE_EVENT_TABLE( )

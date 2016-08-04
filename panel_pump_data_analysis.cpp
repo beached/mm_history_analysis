@@ -63,14 +63,14 @@ size_t PanelPumpDataAnalyis::ms_number_children = 0;
 
 using namespace daw::data;
 
-void PanelPumpDataAnalyis::add_basal_test_page( wxWindow* child, const wxString& title, const bool bring_to_front ) {
+void PanelPumpDataAnalyis::add_basal_test_page( wxWindow * child, wxString const & title, bool const bring_to_front ) { 
 	if( nullptr == m_notebook_basal_tests ) {
 		GetBasalTestWindow( );
 	}
 	m_notebook_basal_tests->AddPage( child, title, bring_to_front );
 }
 
-void PanelPumpDataAnalyis::add_top_page( wxWindow* child, const wxString& title, const bool bring_to_front ) {
+void PanelPumpDataAnalyis::add_top_page( wxWindow * child, wxString const & title, bool const bring_to_front ) { 
 	if( nullptr == m_notebook_main ) {
 		GetTopPageWindow( );
 	}
@@ -89,7 +89,16 @@ void PanelPumpDataAnalyis::update_status( ::std::string status ) {
 	wxLogStatus( wxString( status ) );
 }
 
-PanelPumpDataAnalyis::PanelPumpDataAnalyis( wxMDIParentFrame *parent, wxApp* app, const ::std::string& filename ): wxMDIChildFrame( parent, wxID_ANY, wxString::Format( "Child %u", ++ms_number_children ) ), m_filename( filename ), m_app( app ), m_notebook_main( nullptr ), m_notebook_basal_tests( nullptr ), m_table_data( ) {
+PanelPumpDataAnalyis::PanelPumpDataAnalyis( wxMDIParentFrame * parent, wxApp * app, ::std::string filename ): 
+		wxMDIChildFrame{ parent, wxID_ANY, wxString::Format( "Child %u", ++ms_number_children ) }, 
+		m_notebook_main{ nullptr }, 
+		m_notebook_basal_tests{ nullptr },
+		m_grid{ nullptr },
+		m_app{ app }, 
+		m_table_data{ },
+		m_filename{ std::move( filename ) }, 
+		m_backgroundthread{ } {
+
 	update_status( "Loading CSV Data..." );
 	m_backgroundthread = ::std::thread( [&, filename, app]( ) {
 		m_table_data = CSVTable( { filename, 11, []( const ::std::string& header ) {

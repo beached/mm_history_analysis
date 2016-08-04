@@ -38,7 +38,23 @@ namespace daw {
 		using namespace daw::algorithm;
 		using namespace daw::exception;
 
-		graph_config_t::graph_config_t( ): pen_line_average{ *wxBLUE, 3, wxSOLID }, pen_line_high{ { 255, 140, 0 }/*orange*/, 3, wxSOLID }, pen_line_low{ *wxGREEN, 3, wxSOLID }, pen_line_count{ { 49, 0, 98 }/*purple*/, 2, wxSOLID }, pen_area_std_dev{ { 192, 192, 255 }/*light blue*/, 1, wxPENSTYLE_SOLID }, brush_area_std_dev{ { 192, 192, 255 }/*light blue*/, wxSOLID }, pen_axis_x{ *wxRED, 2, wxSOLID }, pen_axis_y{ *wxRED, 2, wxSOLID }, pen_axis_dotted{ *wxRED, 1, wxDOT }, pen_axis_count{ *wxBLUE, 2, wxSOLID }, fnt_axis_title{ 10, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL }, fnt_axis_title_bold{ 10, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD }, axis_title_x( ), axis_title_y( ), axis_title_count( ), coord_data( ) { }
+		graph_config_t::graph_config_t( ): 
+				pen_line_average{ *wxBLUE, 3, wxSOLID }, 
+				pen_line_high{ { 255, 140, 0 }/*orange*/, 3, wxSOLID }, 
+				pen_line_low{ *wxGREEN, 3, wxSOLID }, 
+				pen_line_count{ { 49, 0, 98 }/*purple*/, 2, wxSOLID }, 
+				pen_area_std_dev{ { 192, 192, 255 }/*light blue*/, 1, wxPENSTYLE_SOLID }, 
+				pen_axis_x{ *wxRED, 2, wxSOLID }, 
+				pen_axis_y{ *wxRED, 2, wxSOLID }, 
+				pen_axis_dotted{ *wxRED, 1, wxDOT }, 
+				pen_axis_count{ *wxBLUE, 2, wxSOLID }, 
+				fnt_axis_title{ 10, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL }, 
+				fnt_axis_title_bold{ 10, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD }, 
+				brush_area_std_dev{ { 192, 192, 255 }/*light blue*/, wxSOLID }, 
+				axis_title_x( ), 
+				axis_title_y( ), 
+				axis_title_count( ), 
+				coord_data( ) { }
 
 		namespace impl {
 			namespace {
@@ -427,7 +443,7 @@ namespace daw {
 		}
 
 		void draw_24hr_x_axis( PanelGenericPlotter& gen_plot, int increment_size, graph_config_t graph_config, float at_least_y_values ) {
-			increment_size;
+//			increment_size;
 			const auto& min_point( graph_config.coord_data.item_bounds.point1 );
 			const point_t max_point{ daw::math::value_or_min( graph_config.coord_data.item_bounds.point2.pos( ).x, 100 ), daw::math::value_or_min( graph_config.coord_data.item_bounds.point2.pos( ).y, static_cast<int>(at_least_y_values*10.0) ) };
 			const auto min_y( static_cast<int>(daw::math::floor_by( min_point.pos( ).y - 10, 10.0 )) );

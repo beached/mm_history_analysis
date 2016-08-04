@@ -81,10 +81,12 @@ namespace daw {
 
 			template<typename F>
 			FutureValueImpl( F && func, std::launch launch_policy ):
-				m_value( ), 
-				m_value_fut( std::async( launch_policy, std::forward<F>( func ) ) ),
-				m_has_retrieved( false ), 
-				m_value_mutex( ) { }
+					m_value_mutex{ },
+					m_value_fut{ std::async( launch_policy, std::forward<F>( func ) ) },
+					m_value{ }, 
+					m_has_retrieved{ false } { }
+
+
 
 			template<typename F>
 			void reset( F && func, std::launch launch_policy ) {
