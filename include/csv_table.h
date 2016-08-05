@@ -32,38 +32,48 @@
 namespace daw {
 	namespace data {
 		/// Provides a link to <c>daw::data::DataTable</c> from wxWidgets
-		struct CSVTable: public wxGridTableBase {
-			CSVTable( );
-			/// <summary>Construct from a CSV Text File</summary>
-			CSVTable( daw::data::parse_csv_data_param param );
-			CSVTable( const CSVTable& other );
-			CSVTable( CSVTable&& other );
-			CSVTable& operator=(const CSVTable& other);
-			CSVTable& operator=(CSVTable&& other);
+		class CSVTable;
+		void swap( CSVTable & lhs, CSVTable & rhs ) noexcept;
 
-			const daw::data::DataTable& data( ) const;
-
-			daw::pumpdataanalysis::PumpDataAnalysis& data_analysis( );
-			const daw::pumpdataanalysis::PumpDataAnalysis& data_analysis( ) const;
-
-			virtual int GetNumberRows( );
-			virtual int GetNumberCols( );
-			virtual bool IsEmptyCell( int row, int col );
-			virtual wxString GetValue( int row, int col );
-			virtual void SetValue( int row, int col, const wxString& value );
-			virtual wxString GetColLabelValue( int col );
-			virtual void Clear( );
-
-			inline bool is_valid( ) const {
-				return m_valid;
-			}
-		private:
+		class CSVTable final: public wxGridTableBase {
 			inline void set_valid( bool valid ) {
 				m_valid = valid;
 			}
 			std::shared_ptr<daw::pumpdataanalysis::PumpDataAnalysis> m_data_analysis;
 			bool m_valid;
+
+		public:
+			CSVTable( );
+			/// <summary>Construct from a CSV Text File</summary>
+			explicit CSVTable( daw::data::parse_csv_data_param param );
+
+			CSVTable( CSVTable const & ) = default;
+
+			CSVTable & operator=( CSVTable const & ) = default;
+
+			friend void swap( CSVTable & lhs, CSVTable & rhs ) noexcept;
+			CSVTable( CSVTable && other );
+			CSVTable & operator=( CSVTable && rhs );
+
+			~CSVTable( );
+
+			daw::data::DataTable const & data( ) const;
+
+			daw::pumpdataanalysis::PumpDataAnalysis & data_analysis( );
+			daw::pumpdataanalysis::PumpDataAnalysis const & data_analysis( ) const;
+
+			int GetNumberRows( ) override ;
+			int GetNumberCols( ) override ;
+			bool IsEmptyCell( int row, int col ) override ;
+			wxString GetValue( int row, int col ) override ;
+			void SetValue( int row, int col, wxString const & value ) override;
+			wxString GetColLabelValue( int col ) override;
+			void Clear( ) override;
+
+			bool is_valid( ) const;
+
 		};
+
 
 	}	// namespace data
 }	// namespace daw

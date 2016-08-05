@@ -31,76 +31,91 @@
 
 namespace daw {
 	namespace data {
-		CSVTable::CSVTable( ):wxGridTableBase{ }, m_data_analysis( nullptr ), m_valid( false ) { }
+		CSVTable::CSVTable( ):
+				wxGridTableBase{ },
+				m_data_analysis( nullptr ),
+				m_valid( false ) { }
 
-		CSVTable::CSVTable( daw::data::parse_csv_data_param param ) : wxGridTableBase{ }, m_data_analysis( new daw::pumpdataanalysis::PumpDataAnalysis( ::std::move( param ), ::std::bind( &CSVTable::set_valid, this, true ) ) ), m_valid( false ) { }
+		CSVTable::CSVTable( daw::data::parse_csv_data_param param ) :
+				wxGridTableBase{ },
+				m_data_analysis( new daw::pumpdataanalysis::PumpDataAnalysis( ::std::move( param ), ::std::bind( &CSVTable::set_valid, this, true ) ) ),
+				m_valid( false ) { }
 
-		CSVTable::CSVTable( CSVTable&& other ):wxGridTableBase{ }, m_data_analysis( ::std::move( other.m_data_analysis ) ), m_valid( ::std::move( other.m_valid ) ) { }
-		CSVTable::CSVTable( const CSVTable& other ) : wxGridTableBase{ }, m_data_analysis( other.m_data_analysis ), m_valid( other.m_valid ) { }
-
-		CSVTable& CSVTable::operator=(const CSVTable& other) {
-			if( this != &other ) {
-				m_data_analysis = other.m_data_analysis;
-				m_valid = other.m_valid;
-			}
-			return *this;
-		}
-
-		CSVTable& CSVTable::operator=(CSVTable&& other) {
-			if( this != &other ) {
-				m_data_analysis = ::std::move( other.m_data_analysis );
-				m_valid = ::std::move( other.m_valid );
-			}
-			return *this;
-		}
-
-		const daw::data::DataTable& CSVTable::data( ) const {
+		daw::data::DataTable const & CSVTable::data( ) const {
 			daw::exception::dbg_throw_on_null( m_data_analysis.get( ), ": Attempt to access non-existent data" );
 			return m_data_analysis->data_table( );
 		}
 
-		daw::pumpdataanalysis::PumpDataAnalysis& CSVTable::data_analysis( ) {
+		daw::pumpdataanalysis::PumpDataAnalysis & CSVTable::data_analysis( ) {
 			daw::exception::dbg_throw_on_null( m_data_analysis.get( ), ": Attempt to access non-existent data" );
 			return *m_data_analysis;
 		}
 
-		const daw::pumpdataanalysis::PumpDataAnalysis& CSVTable::data_analysis( ) const {
+		daw::pumpdataanalysis::PumpDataAnalysis const & CSVTable::data_analysis( ) const {
 			daw::exception::dbg_throw_on_null( m_data_analysis.get( ), ": Attempt to access non-existent data" );
 			return *m_data_analysis;
 		}
 
 		int CSVTable::GetNumberRows( ) {
-			if( 0 == data( ).size( ) ) {
+			if( this->data().empty( ) ) {
 				return 0;
 			}
-			return data( )[0].size( );
+			return static_cast<int>(this->data( )[0].size( ));
 		}
 
 		int CSVTable::GetNumberCols( ) {
-			return data( ).size( );
+			return static_cast<int>( this->data( ).size( ) );
 		}
 
 		bool CSVTable::IsEmptyCell( int row, int col ) {
-			return data( )[col][row].empty( );
+			return this->data( )[col][row].empty( );
 		}
 
 		wxString CSVTable::GetValue( int row, int col ) {
-			const auto& cell = data( )[col][row];
+			auto const & cell = this->data( )[col][row];
 			if( DataCellType::timestamp == cell.type( ) ) {
 				return daw::string::ptime_to_string( cell.timestamp( ), "%Y-%m-%d %H:%M" );
 			}
 			return cell.to_string( );
 		}
 
-		void CSVTable::SetValue( int, int, const wxString& ) {
+		void CSVTable::SetValue( int, int, wxString const & ) {
 			throw daw::exception::NotImplemented( ": DataTable is read-only" );
 		}
 
 		wxString CSVTable::GetColLabelValue( int col ) {
-			wxString ret = data( )[col].header( );
+			auto ret = this->data( )[col].header( );
 			return ret;
 		}
 
 		void CSVTable::Clear( ) { }
+
+		CSVTable::~CSVTable( ) { }
+
+		CSVTable::CSVTable( CSVTable && other ):
+			wxGridTableBase{ },
+			m_data_analysis{ std::move( other.m_data_analysis ) },
+			m_valid{ other.m_valid } { }
+
+
+		void swap( CSVTable & lhs, CSVTable & rhs ) noexcept {
+			using std::swap;
+			swap( lhs.m_data_analysis, rhs.m_data_analysis );
+			swap( lhs.m_valid, rhs.m_valid );
+		}
+
+		CSVTable & CSVTable::operator=( CSVTable && rhs ) {
+			if( this != &rhs ) {
+				using std::swap;
+				CSVTable tmp{ std::move( rhs ) };
+				swap( *this, tmp );
+			}
+			return *this;
+		}
+
+		bool CSVTable::is_valid( ) const {
+			return m_valid;
+		}
+
 	}
 }

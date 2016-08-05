@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include <boost/utility/string_ref.hpp>
 #include <functional>
 
 #include <daw/daw_algorithm.h>
@@ -90,7 +91,7 @@ void PanelPumpDataAnalyis::update_status( ::std::string status ) {
 }
 
 PanelPumpDataAnalyis::PanelPumpDataAnalyis( wxMDIParentFrame * parent, wxApp * app, ::std::string filename ): 
-		wxMDIChildFrame{ parent, wxID_ANY, wxString::Format( "Child %u", ++ms_number_children ) }, 
+		wxMDIChildFrame{ parent, wxID_ANY, wxString::Format( "Child %llu", ++ms_number_children ) },
 		m_notebook_main{ nullptr }, 
 		m_notebook_basal_tests{ nullptr },
 		m_grid{ nullptr },
@@ -100,15 +101,17 @@ PanelPumpDataAnalyis::PanelPumpDataAnalyis( wxMDIParentFrame * parent, wxApp * a
 		m_backgroundthread{ } {
 
 	update_status( "Loading CSV Data..." );
-	m_backgroundthread = ::std::thread( [&, filename, app]( ) {
-		m_table_data = CSVTable( { filename, 11, []( const ::std::string& header ) {
-			using daw::algorithm::contains;
-			static const ::std::vector<std::string> disallowed_headers = { "Index", "Time", "Date", "Raw-ID", "Raw-Upload ID", "Raw-Seq Num", "Raw-Device Type" };
-			const bool is_disallowed = contains( disallowed_headers, header );
-			return !is_disallowed;
-		}, [&, app]( ::std::string status ) {
+	daw::data::parse_csv_data_param params{ filename, 11, []( boost::string_ref header ) {
+		using daw::algorithm::contains;
+		static const ::std::vector<std::string> disallowed_headers = { "Index", "Time", "Date", "Raw-ID", "Raw-Upload ID", "Raw-Seq Num", "Raw-Device Type" };
+		const bool is_disallowed = contains( disallowed_headers, header );
+		return !is_disallowed;
+	}, [&, app]( ::std::string status ) {
 			update_status_callback( status, app );
-		} } );
+	} };
+	m_backgroundthread = ::std::thread( [&, params]( ) {
+
+		m_table_data = CSVTable( params );
 		if( !m_table_data.is_valid( )) {
 			// Call Error Handler
 			app->GetTopWindow( )->GetEventHandler( )->CallAfter( ::std::bind( &PanelPumpDataAnalyis::on_finished_loading_csv_data_error, this ) );

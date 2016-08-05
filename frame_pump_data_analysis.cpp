@@ -101,7 +101,9 @@ void FramePumpDataAnalysis::on_file_open( wxCommandEvent& ) {
 	if( wxID_CANCEL == openFileDialog.ShowModal( ) ) {
 		return;
 	}
-	auto subframe = daw::exception::dbg_throw_on_null_or_return( new PanelPumpDataAnalyis( this, m_wxapp, openFileDialog.GetPath( ).ToStdString( ) ), ": Error creating new PanelPumpDataAnalysis" );
+	auto fpath = openFileDialog.GetPath( ).ToStdString( );
+	auto ppda = new PanelPumpDataAnalyis( this, m_wxapp, fpath );
+	auto subframe = daw::exception::dbg_throw_on_null_or_return( ppda, ": Error creating new PanelPumpDataAnalysis" );
 	Unused( subframe );
 }
 
