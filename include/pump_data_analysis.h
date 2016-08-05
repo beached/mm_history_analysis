@@ -36,31 +36,33 @@ namespace daw {
 // 	}
 
 	namespace pumpdataanalysis {
-		struct PumpDataAnalysis {
-			typedef ::std::vector<::std::pair<size_t, size_t>> basal_tests_t;
-		
-			PumpDataAnalysis( daw::data::parse_csv_data_param param, ::std::function<void( )> on_completed );
-			PumpDataAnalysis( PumpDataAnalysis && value ) noexcept;
-
-			PumpDataAnalysis & operator=( PumpDataAnalysis && rhs) noexcept;
-			
-			friend void swap( PumpDataAnalysis & lhs, PumpDataAnalysis & rhs ) noexcept;
-
-			const daw::data::DataTable& data_table( ) const;
-			daw::data::DataTable& rw_data_table( );
-
-			const basal_tests_t& basal_tests( ) const;
-			basal_tests_t& basal_tests( );
-			basal_tests_t basal_tests_in_range( ::std::pair<boost::posix_time::ptime, boost::posix_time::ptime> date_range );
-
-		private:			
-			PumpDataAnalysis( const PumpDataAnalysis& value ) = delete;
-			PumpDataAnalysis& operator=(const PumpDataAnalysis& rhs) = delete;
-			daw::data::DataTable parse_csv( daw::data::parse_csv_data_param param, ::std::function<void( )> on_completed );
+		struct PumpDataAnalysis final {
+			using basal_tests_t = std::vector<::std::pair<size_t, size_t>>;
+		private:
+			daw::data::DataTable parse_csv( daw::data::parse_csv_data_param const & param, ::std::function<void( )> on_completed );
 
 			daw::FutureValue<daw::data::DataTable> m_data_table_fut;
 			daw::FutureValue<basal_tests_t> m_basal_tests_fut;
-		};
+		public:
+			PumpDataAnalysis( daw::data::parse_csv_data_param const & param, ::std::function<void( )> on_completed );
+
+			PumpDataAnalysis( ) = delete;
+			~PumpDataAnalysis( ) = default;
+			PumpDataAnalysis( PumpDataAnalysis const & ) = delete;
+			PumpDataAnalysis( PumpDataAnalysis && other ) noexcept;
+
+			PumpDataAnalysis & operator=( PumpDataAnalysis && rhs) noexcept;
+			PumpDataAnalysis& operator=( PumpDataAnalysis const & ) = delete;
+
+			friend void swap( PumpDataAnalysis & lhs, PumpDataAnalysis & rhs ) noexcept;
+
+			daw::data::DataTable const & data_table( ) const;
+			daw::data::DataTable & rw_data_table( );
+
+			basal_tests_t const & basal_tests( ) const;
+			basal_tests_t & basal_tests( );
+			basal_tests_t basal_tests_in_range( ::std::pair<boost::posix_time::ptime, boost::posix_time::ptime> date_range );
+		};	// PumpDataAnalysis
 	}
 }
 

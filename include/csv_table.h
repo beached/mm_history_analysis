@@ -45,7 +45,7 @@ namespace daw {
 		public:
 			CSVTable( );
 			/// <summary>Construct from a CSV Text File</summary>
-			explicit CSVTable( daw::data::parse_csv_data_param param );
+			explicit CSVTable( daw::data::parse_csv_data_param const & param );
 
 			CSVTable( CSVTable const & ) = default;
 

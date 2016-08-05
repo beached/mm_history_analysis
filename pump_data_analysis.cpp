@@ -67,7 +67,8 @@ namespace daw {
 				};
 				return for_forward( start_row, end_row, action );
 			}
-
+			
+			#if 0
 			std::pair<size_t, size_t> rows_from_date_range( ::std::pair<boost::posix_time::ptime, boost::posix_time::ptime> date_range, const daw::data::DataTable::value_type& column_timestamp ) {
 				size_t first = row_from_date( date_range.first, column_timestamp );
 				size_t last = row_from_date( date_range.second, column_timestamp, first + 1 );
@@ -79,6 +80,7 @@ namespace daw {
 				}
 				return{ first, last };
 			}
+			#endif
 
 			bool should_stop_basal_test( const daw::data::DataTable& table, const size_t row ) {
 				// Columns of impact
@@ -148,7 +150,7 @@ namespace daw {
 
 		}	// namespace anonymous~
 
-		daw::data::DataTable PumpDataAnalysis::parse_csv( daw::data::parse_csv_data_param param, ::std::function<void( )> on_completed ) {		
+		daw::data::DataTable PumpDataAnalysis::parse_csv( daw::data::parse_csv_data_param const & param, ::std::function<void( )> on_completed ) {
 			auto && tbl = daw::data::parse_csv_data( ::std::move( param ) );
 			if( !tbl.has_value( ) ) {
 				::std::string msg = ": Error opening table\n";
@@ -179,7 +181,7 @@ namespace daw {
 			}
 		}
 
-		PumpDataAnalysis::PumpDataAnalysis( daw::data::parse_csv_data_param param, ::std::function<void( )> on_completed ): 
+		PumpDataAnalysis::PumpDataAnalysis( daw::data::parse_csv_data_param const & param, ::std::function<void( )> on_completed ):
 				m_data_table_fut( [&, param, on_completed]( ) { 
 
 			return parse_csv( param, on_completed ); 
@@ -201,9 +203,9 @@ namespace daw {
 			return m_basal_tests_fut.get( );
 		}
 
-		PumpDataAnalysis::PumpDataAnalysis( PumpDataAnalysis&& value ) noexcept:
-				m_data_table_fut{ ::std::move( value.m_data_table_fut ) },
-				m_basal_tests_fut{ ::std::move( value.m_basal_tests_fut ) } { }
+		PumpDataAnalysis::PumpDataAnalysis( PumpDataAnalysis&& other ) noexcept:
+				m_data_table_fut{ ::std::move( other.m_data_table_fut ) },
+				m_basal_tests_fut{ ::std::move( other.m_basal_tests_fut ) } { }
 	
 		PumpDataAnalysis & PumpDataAnalysis::operator=( PumpDataAnalysis && rhs) noexcept {
 			if( this != &rhs ) {

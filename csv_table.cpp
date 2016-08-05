@@ -36,9 +36,9 @@ namespace daw {
 				m_data_analysis( nullptr ),
 				m_valid( false ) { }
 
-		CSVTable::CSVTable( daw::data::parse_csv_data_param param ) :
+		CSVTable::CSVTable( daw::data::parse_csv_data_param const & param ) :
 				wxGridTableBase{ },
-				m_data_analysis( new daw::pumpdataanalysis::PumpDataAnalysis( ::std::move( param ), ::std::bind( &CSVTable::set_valid, this, true ) ) ),
+				m_data_analysis( new daw::pumpdataanalysis::PumpDataAnalysis( param, ::std::bind( &CSVTable::set_valid, this, true ) ) ),
 				m_valid( false ) { }
 
 		daw::data::DataTable const & CSVTable::data( ) const {

@@ -182,7 +182,7 @@ namespace daw {
 		}
 
 		namespace impl {
-			PanelGenericPlotAction::~PanelGenericPlotAction{ } { }
+			PanelGenericPlotAction::~PanelGenericPlotAction( ) { }
 
 			class PanelGenericPlotActionPen final: public PanelGenericPlotAction {
 				wxPen m_pen;

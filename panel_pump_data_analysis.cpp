@@ -84,15 +84,24 @@ void PanelPumpDataAnalyis::add_menu_bar( wxMenuBar* menu ) {
 	SetMenuBar( menu );
 }
 
-void PanelPumpDataAnalyis::update_status_callback( ::std::string status, wxApp* app ) {	
+void PanelPumpDataAnalyis::update_status_callback( ::std::string status, wxApp * app ) {
 	app->GetTopWindow( )->GetEventHandler( )->CallAfter( ::std::bind( &PanelPumpDataAnalyis::update_status, this, status ) );
 }
 
 void PanelPumpDataAnalyis::update_status( ::std::string status ) {
 	wxLogStatus( wxString( status ) );
 }
+namespace {
+	bool column_filter( std::string const & header ) {
+		using daw::algorithm::contains;
+		static const ::std::vector<std::string> disallowed_headers = { "Index", "Time", "Date", "Raw-ID", "Raw-Upload ID", "Raw-Seq Num", "Raw-Device Type" };
+		const bool is_disallowed = contains( disallowed_headers, header );
+		return !is_disallowed;
+	}
 
-PanelPumpDataAnalyis::PanelPumpDataAnalyis( wxMDIParentFrame * parent, wxApp * app, ::std::string filename ): 
+}	// namespace anonymous
+
+PanelPumpDataAnalyis::PanelPumpDataAnalyis( wxMDIParentFrame * parent, wxApp * app, ::std::string filename ):
 		wxMDIChildFrame{ parent, wxID_ANY, wxString::Format( "Child %llu", ++ms_number_children ) },
 		m_notebook_main{ nullptr }, 
 		m_notebook_basal_tests{ nullptr },
@@ -103,26 +112,25 @@ PanelPumpDataAnalyis::PanelPumpDataAnalyis( wxMDIParentFrame * parent, wxApp * a
 		m_backgroundthread{ } {
 
 	update_status( "Loading CSV Data..." );
-	daw::data::parse_csv_data_param params{ filename, 11, []( boost::string_ref header ) {
-		using daw::algorithm::contains;
-		static const ::std::vector<std::string> disallowed_headers = { "Index", "Time", "Date", "Raw-ID", "Raw-Upload ID", "Raw-Seq Num", "Raw-Device Type" };
-		const bool is_disallowed = contains( disallowed_headers, header );
-		return !is_disallowed;
-	}, [&, app]( ::std::string status ) {
+	daw::data::parse_csv_data_param params( m_filename, 11, column_filter, [&]( ::std::string status ) {
 			update_status_callback( status, app );
-	} };
-	m_backgroundthread = ::std::thread( [&, params]( ) {
+	} );
 
-		m_table_data = CSVTable( params );
+	auto worker = [&, p=std::move( params ), app]( ) {
+		m_table_data = CSVTable( p );
+
+		auto handler = app->GetTopWindow( )->GetEventHandler( );
+
 		if( !m_table_data.is_valid( )) {
 			// Call Error Handler
-			app->GetTopWindow( )->GetEventHandler( )->CallAfter( ::std::bind( &PanelPumpDataAnalyis::on_finished_loading_csv_data_error, this ) );
+			handler->CallAfter( std::bind( &PanelPumpDataAnalyis::on_finished_loading_csv_data_error, this ) );
 			return;
 		}
-		
-		app->GetTopWindow( )->GetEventHandler( )->CallAfter( ::std::bind( &PanelPumpDataAnalyis::on_finished_loading_csv_data, this ) );
-	} );
-	m_backgroundthread.detach( );	
+		handler->CallAfter(  std::bind( &PanelPumpDataAnalyis::on_finished_loading_csv_data, this ) );
+	};
+	m_backgroundthread = std::thread( worker );
+	m_backgroundthread.detach( );
+
 	const wxString title = "Data: " + m_filename;
 	SetTitle( title );
 	Show( false );
