@@ -68,8 +68,6 @@ set( HEADER_FILES
 	${HEADER_FOLDER}/csv_table.h
 	${HEADER_FOLDER}/dialog_date_range_chooser.h
 	${HEADER_FOLDER}/frame_pump_data_analysis.h
-	${HEADER_FOLDER}/future_value.h
-	${HEADER_FOLDER}/impl/future_value_impl.h
 	${HEADER_FOLDER}/multi_lock.h
 	${HEADER_FOLDER}/panel_average_basal_derivative.h
 	${HEADER_FOLDER}/panel_average_basal.h
