@@ -58,8 +58,8 @@ namespace {
 		int last_cell_time = 0;
 		size_t start = first_pos;
 		{
-			const auto avg_cell_item_time = start * 5;
-			const auto& avg_cell = aggregate_data[start];
+			auto const avg_cell_item_time = start * 5;
+			auto const& avg_cell = aggregate_data[start];
 			last_point_avg = point_t( avg_cell_item_time, static_cast<int>(avg_cell.average*10.0) );
 			last_point_low = point_t( avg_cell_item_time, static_cast<int>(avg_cell.low*10.0) );
 			last_point_high = point_t( avg_cell_item_time, static_cast<int>(avg_cell.high*10.0) );
@@ -71,23 +71,23 @@ namespace {
 		size_t prev_n = start;
 
 		auto gen_poly = [&]( const daw::AggregateData<real_t>& last_agg, int last_time, const daw::AggregateData<real_t>& curr_agg, int curr_time ) {
-			const auto std_dev_low_last = static_cast<int>((last_agg.average - last_agg.std_dev)*10.0);
-			const auto std_dev_high_last = static_cast<int>((last_agg.average + last_agg.std_dev)*10.0);
-			const auto std_dev_low_current = static_cast<int>((curr_agg.average - curr_agg.std_dev)*10.0);
-			const auto std_dev_high_current = static_cast<int>((curr_agg.average + curr_agg.std_dev)*10.0);
+			auto const std_dev_low_last = static_cast<int>((last_agg.average - last_agg.std_dev)*10.0);
+			auto const std_dev_high_last = static_cast<int>((last_agg.average + last_agg.std_dev)*10.0);
+			auto const std_dev_low_current = static_cast<int>((curr_agg.average - curr_agg.std_dev)*10.0);
+			auto const std_dev_high_current = static_cast<int>((curr_agg.average + curr_agg.std_dev)*10.0);
 			return ::std::move( ::std::vector<point_t>{ point_t( last_time, std_dev_low_last ), point_t( last_time, std_dev_high_last ), point_t( curr_time, std_dev_high_current ), point_t( curr_time, std_dev_low_current ), point_t( last_time, std_dev_low_last ) } );
 		};
 
 		gen_plot.set_brush( graph_config.brush_area_std_dev );
 		for( size_t n = start; n < aggregate_data.size( ); ++n ) {
-			const auto& avg_cell = aggregate_data[n];
+			auto const& avg_cell = aggregate_data[n];
 			if( 0 <= avg_cell.count ) {
 				const int avg_cell_item_time = n * 5;
-				const auto p2_avg = point_t( avg_cell_item_time, static_cast<int>(avg_cell.average*10.0) );
+				auto const p2_avg = point_t( avg_cell_item_time, static_cast<int>(avg_cell.average*10.0) );
 
-				const auto p2_low = point_t( avg_cell_item_time, static_cast<int>(avg_cell.low*10.0) );
-				const auto p2_high = point_t( avg_cell_item_time, static_cast<int>(avg_cell.high*10.0) );
-				const auto p2_count = point_t( avg_cell_item_time, avg_cell.count );
+				auto const p2_low = point_t( avg_cell_item_time, static_cast<int>(avg_cell.low*10.0) );
+				auto const p2_high = point_t( avg_cell_item_time, static_cast<int>(avg_cell.high*10.0) );
+				auto const p2_count = point_t( avg_cell_item_time, avg_cell.count );
 
 				// Draw graph's in z-order from lowest to highest
 
@@ -132,14 +132,14 @@ PanelAverageBasal::PanelAverageBasal( wxWindow *parent, ::std::function<void( wx
 	m_aggregate.resize( m_points_x, daw::AggregateData<daw::data::real_t>( ) );
 
 	// Find max and min
-	const auto& bg_col = m_data["Sensor Glucose (mmol/L)"];
-	const auto& ts_col = m_data["Timestamp"];
+	auto const& bg_col = m_data["Sensor Glucose (mmol/L)"];
+	auto const& ts_col = m_data["Timestamp"];
 
-	for( const auto position : m_basal_positions ) {
+	for( auto const position : m_basal_positions ) {
 		for( auto row = position.first; row <= position.second; ++row ) {
 			if( bg_col[row] ) {
 				const size_t pos = [&]( ) {
-					const auto ts_value = ts_col[row].timestamp( ).time_of_day( );
+					auto const ts_value = ts_col[row].timestamp( ).time_of_day( );
 					auto ret = ts_value.hours( ) * 12 + daw::math::round_to_nearest( ts_value.minutes( ), 5.0 ) / 5;
 					if( 288 == ret ) {
 						ret = 0;
@@ -147,7 +147,7 @@ PanelAverageBasal::PanelAverageBasal( wxWindow *parent, ::std::function<void( wx
 					return ret;
 				}();
 
-				const auto bg_value = bg_col[row].real( );
+				auto const bg_value = bg_col[row].real( );
 				m_aggregate[pos].add_value( bg_value );
 			}
 		}

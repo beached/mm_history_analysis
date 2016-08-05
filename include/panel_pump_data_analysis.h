@@ -59,7 +59,7 @@ struct PanelPumpDataAnalyis: public wxMDIChildFrame {
 		}
 		return m_notebook_main;
 	}
-private:
+
 	void on_activate( wxActivateEvent& event );
 	void on_refresh( wxCommandEvent& event );
 	void on_update_refresh( wxUpdateUIEvent& event );
@@ -77,6 +77,7 @@ private:
 	void update_status( ::std::string status ) const;
 	void update_status_callback( ::std::string status, wxApp* app );
 
+private:
 	static size_t ms_number_children;
 	wxNotebook * m_notebook_main;
 	wxNotebook * m_notebook_basal_tests;

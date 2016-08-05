@@ -23,12 +23,11 @@
 #pragma once
 
 #include <boost/date_time/posix_time/ptime.hpp>
+#include <future>
 #include <memory>
 #include <string>
 
 #include <daw/csv_helper/data_table.h>
-
-#include "future_value.h"
 
 namespace daw {
 // 	namespace data {
@@ -41,8 +40,7 @@ namespace daw {
 		private:
 			daw::data::DataTable parse_csv( daw::data::parse_csv_data_param const & param, ::std::function<void( )> on_completed );
 
-			daw::FutureValue<daw::data::DataTable> m_data_table_fut;
-			daw::FutureValue<basal_tests_t> m_basal_tests_fut;
+			std::shared_future<daw::data::DataTable> m_data_table_fut;
 			std::shared_future<basal_tests_t> m_basal_tests_fut;
 		public:
 			PumpDataAnalysis( daw::data::parse_csv_data_param const & param, ::std::function<void( )> on_completed );
@@ -58,10 +56,8 @@ namespace daw {
 			friend void swap( PumpDataAnalysis & lhs, PumpDataAnalysis & rhs ) noexcept;
 
 			daw::data::DataTable const & data_table( ) const;
-			daw::data::DataTable & rw_data_table( );
 
 			basal_tests_t const & basal_tests( ) const;
-			basal_tests_t & basal_tests( );
 			basal_tests_t basal_tests_in_range( ::std::pair<boost::posix_time::ptime, boost::posix_time::ptime> date_range );
 		};	// PumpDataAnalysis
 	}

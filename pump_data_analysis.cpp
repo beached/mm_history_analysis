@@ -176,31 +176,25 @@ namespace daw {
 					}
 				}
 				on_completed( );
-				m_basal_tests_fut = daw::FutureValue<basal_tests_t>( ::std::bind( &do_basal_test, ::std::cref( result ) ) );
+				m_basal_tests_fut = std::async( [res = std::cref( result )]( ) {
+					return do_basal_test( res );
+				} ).share( );
 				return result;
 			}
 		}
 
 		PumpDataAnalysis::PumpDataAnalysis( daw::data::parse_csv_data_param const & param, ::std::function<void( )> on_completed ):
-				m_data_table_fut( [&, param, on_completed]( ) {
+				m_data_table_fut{ std::async( [&, param, on_completed]( ) {
 
 			auto result = parse_csv( param, on_completed );
 			return result;
-		} ) { }
+		} ).share( ) } { }
 
-		const daw::data::DataTable& PumpDataAnalysis::data_table( ) const {
+		daw::data::DataTable const & PumpDataAnalysis::data_table( ) const {
 			return m_data_table_fut.get( );
 		}
 
-		daw::data::DataTable& PumpDataAnalysis::rw_data_table( ) {
-			return m_data_table_fut.get( );
-		}
-
-		const PumpDataAnalysis::basal_tests_t& PumpDataAnalysis::basal_tests( ) const {
-			return m_basal_tests_fut.get( );
-		}
-
-		PumpDataAnalysis::basal_tests_t& PumpDataAnalysis::basal_tests( ) {
+		PumpDataAnalysis::basal_tests_t const & PumpDataAnalysis::basal_tests( ) const {
 			return m_basal_tests_fut.get( );
 		}
 

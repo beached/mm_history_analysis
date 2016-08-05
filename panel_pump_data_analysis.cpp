@@ -45,9 +45,9 @@ namespace {
 	using namespace daw::data;
 	bool should_stop_basal_test( const DataTable& table, const size_t row ) {
 		// Columns of impact
-		const auto& col_bolus = table["Bolus Volume Delivered (U)"];
-		const auto& col_carb = table["BWZ Carb Input (grams)"];
-		const auto& col_raw_type = table["Raw-Type"];
+		auto const& col_bolus = table["Bolus Volume Delivered (U)"];
+		auto const& col_carb = table["BWZ Carb Input (grams)"];
+		auto const& col_raw_type = table["Raw-Type"];
 
 		const bool has_manual_food = 0 == col_raw_type[row].string( ).compare( "JournalEntryMealMarker" );	// Has eaten
 		const bool has_temp_basal = 0 == col_raw_type[row].string( ).compare( "ChangeTempBasalPercent" );	// Basal dose isn't normal
@@ -134,9 +134,9 @@ PanelPumpDataAnalyis::PanelPumpDataAnalyis( wxMDIParentFrame * parent, wxApp * a
 		}
 		handler->CallAfter(  std::bind( &PanelPumpDataAnalyis::on_finished_loading_csv_data, this ) );
 	};
-	//worker( );
-	m_backgroundthread = std::thread( worker );
-	m_backgroundthread.detach( );
+	worker( );
+	//m_backgroundthread = std::thread( worker );
+	//m_backgroundthread.detach( );
 
 	const wxString title = "Data: " + m_filename;
 	SetTitle( title );
@@ -216,10 +216,10 @@ void PanelPumpDataAnalyis::on_close_window( wxCloseEvent& event ) {
 namespace {
 	#if 0
 	size_t skip_hrs( size_t row, const daw::data::DataTable::value_type& ts_col, const int32_t hours ) {
-		const auto time_start = ts_col[row++].timestamp( );
+		auto const time_start = ts_col[row++].timestamp( );
 		for( ; row < ts_col.size( ); ++row ) {
-			const auto time_now = ts_col[row].timestamp( );
-			const auto duration = time_now - time_start;
+			auto const time_now = ts_col[row].timestamp( );
+			auto const duration = time_now - time_start;
 			if( duration.hours( ) >= hours ) {
 				break;
 			}
@@ -243,7 +243,7 @@ namespace {
 			end_row = column_timestamp.size( );
 		}
 		auto action = [&dte, &column_timestamp]( size_t n ) -> bool {
-			const auto& cur_cell = column_timestamp[n];
+			auto const& cur_cell = column_timestamp[n];
 			if( cur_cell && cur_cell.timestamp( ) >= dte ) {
 				return true;
 			}
@@ -271,10 +271,10 @@ namespace {
 // 	using ::std::begin;
 // 	daw::wx::DialogDateRangeChooser date_range_selector( this, wxID_ANY, "Look for Basal tests", begin( m_table_data.data( )["Timestamp"] )->timestamp( ), rbegin2( m_table_data.data( )["Timestamp"] )->timestamp( ) );
 // 	if( wxOK == date_range_selector.ShowModal( ) ) {
-// 		const auto selected_date_range = date_range_selector.get_selected_range( );
-// 		const auto minmax_rows = rows_from_date_range( selected_date_range, m_table_data.data( )["Timestamp"] );
+// 		auto const selected_date_range = date_range_selector.get_selected_range( );
+// 		auto const minmax_rows = rows_from_date_range( selected_date_range, m_table_data.data( )["Timestamp"] );
 // 		m_backgroundthread = ::std::thread( [&, minmax_rows]( ) {
-// 			const auto basal_tests = m_table_data.data_analysis( ).basal_tests_in_range( date_range_selector.get_selected_range( ) );
+// 			auto const basal_tests = m_table_data.data_analysis( ).basal_tests_in_range( date_range_selector.get_selected_range( ) );
 // 			m_app->GetTopWindow( )->GetEventHandler( )->CallAfter( ::std::bind( &PanelPumpDataAnalyis::on_finished_do_basal_tests, this, basal_tests, minmax_rows ) );
 // 		} );
 // 		m_backgroundthread.detach( );
@@ -288,13 +288,13 @@ void PanelPumpDataAnalyis::on_do_basal_tests( wxCommandEvent& ) {
 	using ::std::begin;
 	daw::wx::DialogDateRangeChooser date_range_selector( this, wxID_ANY, "Look for Basal tests", begin( m_table_data.data( )["Timestamp"] )->timestamp( ), rbegin2( m_table_data.data( )["Timestamp"] )->timestamp( ) );
 	if( wxOK == date_range_selector.ShowModal( ) ) {
-		const auto selected_date_range = date_range_selector.get_selected_range( );
-		const auto date_range = rows_from_date_range( selected_date_range, m_table_data.data( )["Timestamp"] );
-		const auto basal_tests = m_table_data.data_analysis( ).basal_tests_in_range( date_range_selector.get_selected_range( ) );
-		const auto cb = ::std::bind( &PanelPumpDataAnalyis::add_menu_bar, this, ::std::placeholders::_1 );
-		for( const auto& period : basal_tests ) {
+		auto const selected_date_range = date_range_selector.get_selected_range( );
+		auto const date_range = rows_from_date_range( selected_date_range, m_table_data.data( )["Timestamp"] );
+		auto const basal_tests = m_table_data.data_analysis( ).basal_tests_in_range( date_range_selector.get_selected_range( ) );
+		auto const cb = ::std::bind( &PanelPumpDataAnalyis::add_menu_bar, this, ::std::placeholders::_1 );
+		for( auto const& period : basal_tests ) {
 			auto plot = new PanelDataPlot( GetBasalTestWindow( ), cb, m_table_data.data( ), period.first, period.second, wxDefaultPosition, GetBasalTestWindow( )->GetClientSize( ) );
-			const auto& col_ts = m_table_data.data( )["Timestamp"];
+			auto const& col_ts = m_table_data.data( )["Timestamp"];
 			std::string title = daw::string::ptime_to_string( col_ts[period.first].timestamp( ), "%Y-%m-%d %H:%M" ) + " -> " + daw::string::ptime_to_string( col_ts[period.second].timestamp( ), "%Y-%m-%d %H:%M" );
 			add_basal_test_page( plot, title );
 		}
@@ -309,21 +309,21 @@ void PanelPumpDataAnalyis::on_do_basal_tests( wxCommandEvent& ) {
 	}
 }
 
-// void PanelPumpDataAnalyis::on_finished_do_basal_tests( const ::std::vector<std::pair<daw::data::DataTable::size_type, daw::data::DataTable::size_type>> positions, const ::std::pair<size_t, size_t> date_range ) {
-// 	const auto cb = ::std::bind( &PanelPumpDataAnalyis::add_menu_bar, this, ::std::placeholders::_1 );
-// 	for( const auto& period : positions ) {		
-// 		auto plot = new PanelDataPlot( GetBasalTestWindow( ), cb, m_table_data.data( ), period.first, period.second, wxDefaultPosition, GetBasalTestWindow( )->GetClientSize( ) );
-// 		const auto& col_ts = m_table_data.data( )["Timestamp"];
-// 		std::string title = daw::string::ptime_to_string( col_ts[period.first].timestamp( ), "%Y-%m-%d %H:%M" ) + " -> " + daw::string::ptime_to_string( col_ts[period.second].timestamp( ), "%Y-%m-%d %H:%M" );
-// 		add_basal_test_page( plot, title );
-// 	}
-// 	auto avgBasal = new PanelAverageBasal( GetTopPageWindow( ), cb, m_table_data.data( ), positions );
-// 	add_top_page( avgBasal, wxT( "Aggregate Basal Day" ) );
-// 	auto avgDay = new PanelAverageBasal( GetTopPageWindow( ), cb, m_table_data.data( ), { { date_range.first, date_range.second } } );
-// 	add_top_page( avgDay, wxT( "Average Day in Range" ) );
-// 	auto avgBasalDeriv = new PanelAverageBasalDerivative( GetTopPageWindow( ), cb, m_table_data.data( ), positions );
-// 	add_top_page( avgBasalDeriv, wxT( "Average Basal Change" ), true );
-// }
+ void PanelPumpDataAnalyis::on_finished_do_basal_tests( const ::std::vector<std::pair<daw::data::DataTable::size_type, daw::data::DataTable::size_type>> positions, const ::std::pair<size_t, size_t> date_range ) {
+	auto const cb = ::std::bind( &PanelPumpDataAnalyis::add_menu_bar, this, ::std::placeholders::_1 );
+	for( auto const& period : positions ) {
+		auto plot = new PanelDataPlot( GetBasalTestWindow( ), cb, m_table_data.data( ), period.first, period.second, wxDefaultPosition, GetBasalTestWindow( )->GetClientSize( ) );
+		auto const& col_ts = m_table_data.data( )["Timestamp"];
+		std::string title = daw::string::ptime_to_string( col_ts[period.first].timestamp( ), "%Y-%m-%d %H:%M" ) + " -> " + daw::string::ptime_to_string( col_ts[period.second].timestamp( ), "%Y-%m-%d %H:%M" );
+		add_basal_test_page( plot, title );
+	}
+	auto avgBasal = new PanelAverageBasal( GetTopPageWindow( ), cb, m_table_data.data( ), positions );
+	add_top_page( avgBasal, wxT( "Aggregate Basal Day" ) );
+	auto avgDay = new PanelAverageBasal( GetTopPageWindow( ), cb, m_table_data.data( ), { { date_range.first, date_range.second } } );
+	add_top_page( avgDay, wxT( "Average Day in Range" ) );
+	auto avgBasalDeriv = new PanelAverageBasalDerivative( GetTopPageWindow( ), cb, m_table_data.data( ), positions );
+	add_top_page( avgBasalDeriv, wxT( "Average Basal Change" ), true );
+}
 
 BEGIN_EVENT_TABLE( PanelPumpDataAnalyis, wxMDIChildFrame )
 	EVT_MENU( wxID_CLOSE, PanelPumpDataAnalyis::on_close )
@@ -332,4 +332,5 @@ BEGIN_EVENT_TABLE( PanelPumpDataAnalyis, wxMDIChildFrame )
 	EVT_SIZE( PanelPumpDataAnalyis::on_size )
 	EVT_MOVE( PanelPumpDataAnalyis::on_move )
 	EVT_CLOSE( PanelPumpDataAnalyis::on_close_window )
+	EVT_ACTIVATE( PanelPumpDataAnalyis::on_activate )
 END_EVENT_TABLE( )
