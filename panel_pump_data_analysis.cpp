@@ -85,16 +85,20 @@ void PanelPumpDataAnalyis::add_menu_bar( wxMenuBar* menu ) {
 }
 
 void PanelPumpDataAnalyis::update_status_callback( ::std::string status, wxApp * app ) {
-	app->GetTopWindow( )->GetEventHandler( )->CallAfter( ::std::bind( &PanelPumpDataAnalyis::update_status, this, status ) );
+	assert( app );
+	app->GetTopWindow( )->GetEventHandler( )->CallAfter( [&]( ) {
+//		update_status( status );
+		wxLogStatus( wxString( status ) );
+	});
 }
 
-void PanelPumpDataAnalyis::update_status( ::std::string status ) {
+void PanelPumpDataAnalyis::update_status( ::std::string status ) const {
 	wxLogStatus( wxString( status ) );
 }
 namespace {
 	bool column_filter( std::string const & header ) {
 		using daw::algorithm::contains;
-		static const ::std::vector<std::string> disallowed_headers = { "Index", "Time", "Date", "Raw-ID", "Raw-Upload ID", "Raw-Seq Num", "Raw-Device Type" };
+		static std::vector<std::string> const disallowed_headers = { "Index", "Time", "Date", "Raw-ID", "Raw-Upload ID", "Raw-Seq Num", "Raw-Device Type" };
 		const bool is_disallowed = contains( disallowed_headers, header );
 		return !is_disallowed;
 	}
@@ -112,8 +116,10 @@ PanelPumpDataAnalyis::PanelPumpDataAnalyis( wxMDIParentFrame * parent, wxApp * a
 		m_backgroundthread{ } {
 
 	update_status( "Loading CSV Data..." );
-	daw::data::parse_csv_data_param params( m_filename, 11, column_filter, [&]( ::std::string status ) {
-			update_status_callback( status, app );
+	auto self = this;
+	daw::data::parse_csv_data_param params( m_filename, 11, column_filter, [self, app]( std::string status ) mutable {
+			assert( app );
+			self->update_status_callback( status, app );
 	} );
 
 	auto worker = [&, p=std::move( params ), app]( ) {
@@ -128,6 +134,7 @@ PanelPumpDataAnalyis::PanelPumpDataAnalyis( wxMDIParentFrame * parent, wxApp * a
 		}
 		handler->CallAfter(  std::bind( &PanelPumpDataAnalyis::on_finished_loading_csv_data, this ) );
 	};
+	//worker( );
 	m_backgroundthread = std::thread( worker );
 	m_backgroundthread.detach( );
 

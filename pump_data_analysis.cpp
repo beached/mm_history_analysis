@@ -182,9 +182,10 @@ namespace daw {
 		}
 
 		PumpDataAnalysis::PumpDataAnalysis( daw::data::parse_csv_data_param const & param, ::std::function<void( )> on_completed ):
-				m_data_table_fut( [&, param, on_completed]( ) { 
+				m_data_table_fut( [&, param, on_completed]( ) {
 
-			return parse_csv( param, on_completed ); 
+			auto result = parse_csv( param, on_completed );
+			return result;
 		} ) { }
 
 		const daw::data::DataTable& PumpDataAnalysis::data_table( ) const {

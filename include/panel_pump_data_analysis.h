@@ -74,7 +74,7 @@ private:
 	void on_finished_loading_csv_data( );
 	void on_finished_do_basal_tests( const ::std::vector<std::pair<daw::data::DataTable::size_type, daw::data::DataTable::size_type>> positions, const ::std::pair<size_t, size_t> date_range );
 	void on_finished_do_correction_tests( const ::std::vector<std::pair<daw::data::DataTable::size_type, daw::data::DataTable::size_type>> positions, const ::std::pair<size_t, size_t> date_range );
-	void update_status( ::std::string status );
+	void update_status( ::std::string status ) const;
 	void update_status_callback( ::std::string status, wxApp* app );
 
 	static size_t ms_number_children;

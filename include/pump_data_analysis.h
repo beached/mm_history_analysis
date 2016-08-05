@@ -43,6 +43,7 @@ namespace daw {
 
 			daw::FutureValue<daw::data::DataTable> m_data_table_fut;
 			daw::FutureValue<basal_tests_t> m_basal_tests_fut;
+			std::shared_future<basal_tests_t> m_basal_tests_fut;
 		public:
 			PumpDataAnalysis( daw::data::parse_csv_data_param const & param, ::std::function<void( )> on_completed );
 
