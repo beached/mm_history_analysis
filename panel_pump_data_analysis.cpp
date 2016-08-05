@@ -41,6 +41,7 @@
 // Pump Data Grid Child Window
 // ---------------------------------------------------------------------------
 namespace {
+	#if 0
 	using namespace daw::data;
 	bool should_stop_basal_test( const DataTable& table, const size_t row ) {
 		// Columns of impact
@@ -54,6 +55,7 @@ namespace {
 		const bool has_bolus_dose = !col_bolus[row].empty( );	// Has taken bolus insulin
 		return has_manual_food || has_temp_basal || has_bolus_wizard_carb || has_bolus_dose ;
 	}
+	#endif
 }
 
 enum {
@@ -197,6 +199,7 @@ void PanelPumpDataAnalyis::on_close_window( wxCloseEvent& event ) {
 }
 
 namespace {
+	#if 0
 	size_t skip_hrs( size_t row, const daw::data::DataTable::value_type& ts_col, const int32_t hours ) {
 		const auto time_start = ts_col[row++].timestamp( );
 		for( ; row < ts_col.size( ); ++row ) {
@@ -208,6 +211,7 @@ namespace {
 		}
 		return row;
 	}
+	#endif
 
 	template<typename T>
 	T for_forward( const T& start, const T& end_exclusive, ::std::function<bool( size_t )> action )  {
@@ -307,11 +311,10 @@ void PanelPumpDataAnalyis::on_do_basal_tests( wxCommandEvent& ) {
 // }
 
 BEGIN_EVENT_TABLE( PanelPumpDataAnalyis, wxMDIChildFrame )
-EVT_MENU( wxID_CLOSE, PanelPumpDataAnalyis::on_close )
-EVT_MENU( MDI_REFRESH, PanelPumpDataAnalyis::on_refresh )
-EVT_MENU( CWDATAGRID_BASALTESTS, PanelPumpDataAnalyis::on_do_basal_tests )
-EVT_SIZE( PanelPumpDataAnalyis::on_size )
-EVT_MOVE( PanelPumpDataAnalyis::on_move )
-
-EVT_CLOSE( PanelPumpDataAnalyis::on_close_window )
+	EVT_MENU( wxID_CLOSE, PanelPumpDataAnalyis::on_close )
+	EVT_MENU( MDI_REFRESH, PanelPumpDataAnalyis::on_refresh )
+	EVT_MENU( CWDATAGRID_BASALTESTS, PanelPumpDataAnalyis::on_do_basal_tests )
+	EVT_SIZE( PanelPumpDataAnalyis::on_size )
+	EVT_MOVE( PanelPumpDataAnalyis::on_move )
+	EVT_CLOSE( PanelPumpDataAnalyis::on_close_window )
 END_EVENT_TABLE( )

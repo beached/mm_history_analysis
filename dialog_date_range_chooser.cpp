@@ -30,7 +30,7 @@ namespace daw {
 	namespace wx {
 		using boost::posix_time::ptime;
 		namespace {
-			ptime to_ptime( const wxDateTime &dt ) {
+			ptime to_ptime( wxDateTime const & dt ) {
 				if( !dt.IsValid( ) ) {
 					return boost::posix_time::not_a_date_time;
 				} else {
@@ -39,7 +39,17 @@ namespace daw {
 			}
 		}	// namespace anonymous
 
-		DialogDateRangeChooser::DialogDateRangeChooser( wxWindow* parent, wxWindowID id, const wxString& title, const boost::posix_time::ptime& start_date, const boost::posix_time::ptime& end_date, const wxPoint& pos ): wxDialog( parent, id, title, pos, wxSize( 225, 165 ), wxDEFAULT_DIALOG_STYLE ), m_start_date( boost::posix_time::to_tm( start_date ) ), m_end_date( boost::posix_time::to_tm( end_date ) ), m_selected_start_date( m_start_date ), m_selected_end_date( m_end_date ), m_dp_start( nullptr ), m_dp_end( nullptr ), m_tp_start( nullptr ), m_tp_end( nullptr ) {
+		DialogDateRangeChooser::DialogDateRangeChooser( wxWindow * parent, wxWindowID id, wxString const & title, boost::posix_time::ptime const & start_date, boost::posix_time::ptime const & end_date, wxPoint const & pos ):
+				wxDialog( parent, id, title, pos, wxSize( 225, 165 ), wxDEFAULT_DIALOG_STYLE ), 
+				m_start_date( boost::posix_time::to_tm( start_date ) ), 
+				m_end_date( boost::posix_time::to_tm( end_date ) ), 
+				m_selected_start_date( m_start_date ), 
+				m_selected_end_date( m_end_date ), 
+				m_dp_start( nullptr ), 
+				m_dp_end( nullptr ), 
+				m_tp_start( nullptr ), 
+				m_tp_end( nullptr ) {
+
 			m_dp_start = new wxDatePickerCtrl( this, wxID_ANY, m_start_date );
 			m_dp_start->SetRange( m_start_date, m_end_date );
 			m_tp_start = new wxTimePickerCtrl( this, wxID_ANY, m_start_date );
@@ -88,30 +98,30 @@ namespace daw {
 		}
 
 		void DialogDateRangeChooser::on_date_time_range_updated( wxDateEvent& event ) {
-			const auto ptr_origin = reinterpret_cast<uintptr_t>(event.GetEventObject( ));
-			const auto ptr_dp_start = reinterpret_cast<uintptr_t>(m_dp_start);
-			const auto ptr_dp_end = reinterpret_cast<uintptr_t>(m_dp_end);
-			const auto ptr_tp_start = reinterpret_cast<uintptr_t>(m_tp_start);
-			const auto ptr_tp_end = reinterpret_cast<uintptr_t>(m_tp_end);
+			auto const ptr_origin = reinterpret_cast<uintptr_t>(event.GetEventObject( ));
+			auto const ptr_dp_start = reinterpret_cast<uintptr_t>(m_dp_start);
+			auto const ptr_dp_end = reinterpret_cast<uintptr_t>(m_dp_end);
+			auto const ptr_tp_start = reinterpret_cast<uintptr_t>(m_tp_start);
+			auto const ptr_tp_end = reinterpret_cast<uintptr_t>(m_tp_end);
 
 			if( ptr_origin == ptr_dp_start ) {
-				const wxDateTime selected_start_date( m_dp_start->GetValue( ) );
+				wxDateTime const selected_start_date( m_dp_start->GetValue( ) );
 				m_selected_start_date.SetYear( selected_start_date.GetYear( ) );
 				m_selected_start_date.SetMonth( selected_start_date.GetMonth( ) );
 				m_selected_start_date.SetDay( selected_start_date.GetDay( ) );				
 			} else if( ptr_origin == ptr_dp_end ) {
-				const wxDateTime selected_end_date( m_dp_end->GetValue( ) );
+				wxDateTime const selected_end_date( m_dp_end->GetValue( ) );
 				m_selected_end_date.SetYear( selected_end_date.GetYear( ) );
 				m_selected_end_date.SetMonth( selected_end_date.GetMonth( ) );
 				m_selected_end_date.SetDay( selected_end_date.GetDay( ) );
 			} else if( ptr_origin == ptr_tp_start ) {
-				const wxDateTime selected_start_time( m_tp_start->GetValue( ) );
+				wxDateTime const selected_start_time( m_tp_start->GetValue( ) );
 				m_selected_start_date.SetHour( selected_start_time.GetHour( ) );
 				m_selected_start_date.SetMinute( selected_start_time.GetMinute( ) );
 				m_selected_start_date.SetSecond( 0 );
 				m_tp_start->SetValue( m_selected_start_date );
 			} else if( ptr_origin == ptr_tp_end ) {				
-				const wxDateTime selected_end_time( m_tp_end->GetValue( ) );
+				wxDateTime const selected_end_time( m_tp_end->GetValue( ) );
 				m_selected_end_date.SetHour( selected_end_time.GetHour( ) );
 				m_selected_end_date.SetMinute( selected_end_time.GetMinute( ) );				
 				m_selected_end_date.SetSecond( 0 );
@@ -155,5 +165,7 @@ namespace daw {
 			}
 		}
 
+		
+		DialogDateRangeChooser::~DialogDateRangeChooser( ) { }
 	}	// Namespace wx
 }	// Namespace daw

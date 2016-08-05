@@ -32,7 +32,23 @@
 
 namespace daw {
 	namespace wx {
-		struct DialogDateRangeChooser: public wxDialog {
+		class DialogDateRangeChooser final: public wxDialog {
+			wxDateTime m_start_date;
+			wxDateTime m_end_date;
+			wxDateTime m_selected_start_date;
+			wxDateTime m_selected_end_date;
+			wxDatePickerCtrl * m_dp_start;
+			wxDatePickerCtrl * m_dp_end;
+			wxTimePickerCtrl * m_tp_start;
+			wxTimePickerCtrl * m_tp_end;
+		
+			void on_ok( wxCommandEvent & event );
+			void on_cancel( wxCommandEvent & event );
+			/// <summary>Handles updating the valid ranges and times/dates in the control.  This allows for ranges that are both partial days and hours</summary>
+			/// <param name="event"><c>wxDateEvent</c> that contains data such as source of event</param>
+			void on_date_time_range_updated( wxDateEvent & event );
+
+		public:
 			/// <summary>Construct a Date Range Chooser Dialog.</summary>
 			/// <param name="parent">Parent window</param>
 			/// <param name="title">Title of dialog window</param>
@@ -41,26 +57,17 @@ namespace daw {
 			/// <param name="pos">Position of dialog</param>
 			/// <param name="size">Size of dialog</param>
 			/// <param name="style">Dialog Style</param>
-			DialogDateRangeChooser( wxWindow* parent, wxWindowID id, const wxString& title, const boost::posix_time::ptime& start_date, const boost::posix_time::ptime& end_date, const wxPoint& pos = wxDefaultPosition );			
+			DialogDateRangeChooser( wxWindow * parent, wxWindowID id, wxString const & title, boost::posix_time::ptime const & start_date, boost::posix_time::ptime const & end_date, wxPoint const & pos = wxDefaultPosition );			
 			/// <summary>Returns a <c>stp::pair</c> with the start and end date/times</summary>
 			std::pair<boost::posix_time::ptime, boost::posix_time::ptime> get_selected_range( ) const;
-		private:
-			const wxDateTime m_start_date;
-			const wxDateTime m_end_date;
-			wxDateTime m_selected_start_date;
-			wxDateTime m_selected_end_date;
-			wxDatePickerCtrl* m_dp_start;
-			wxDatePickerCtrl* m_dp_end;
-			wxTimePickerCtrl* m_tp_start;
-			wxTimePickerCtrl* m_tp_end;
-
-
-			void on_ok( wxCommandEvent& event );
-			void on_cancel( wxCommandEvent& event );
-			/// <summary>Handles updating the valid ranges and times/dates in the control.  This allows for ranges that are both partial days and hours</summary>
-			/// <param name="event"><c>wxDateEvent</c> that contains data such as source of event</param>
-			void on_date_time_range_updated( wxDateEvent& event );
-		};
+			
+			DialogDateRangeChooser( ) = delete;
+			DialogDateRangeChooser( DialogDateRangeChooser const & ) = delete;
+			DialogDateRangeChooser( DialogDateRangeChooser && ) = default;
+			DialogDateRangeChooser & operator=( DialogDateRangeChooser const & ) = delete;
+			DialogDateRangeChooser & operator=( DialogDateRangeChooser && ) = default;
+			~DialogDateRangeChooser( );
+		};	// DialogDateRangeChooser
 	}
 }
 

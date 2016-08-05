@@ -59,51 +59,52 @@ namespace daw {
 		namespace impl {
 			namespace {
 				auto get_mapped_x = []( int x, const translation_t& coord_data ) {
-					const auto& min_point = coord_data.item_bounds.point1;
-					const auto& scale = coord_data.scale;
+					auto const& min_point = coord_data.item_bounds.point1;
+					auto const& scale = coord_data.scale;
 					return static_cast<int>((x - min_point.pos( ).x)*scale.x + coord_data.margins.left);
 				};
 
+				#if 0
 				auto get_unmapped_x = []( int x, const translation_t& coord_data ) {
-					const auto& min_point = coord_data.item_bounds.point1;
-					const auto& scale = coord_data.scale;
+					auto const& min_point = coord_data.item_bounds.point1;
+					auto const& scale = coord_data.scale;
 					return static_cast<int>( static_cast<daw::data::real_t>(x - coord_data.margins.left) / scale.x) + min_point.pos( ).x;
 				};
-
+				#endif
+				
 				auto get_mapped_y = []( int y, const translation_t& coord_data ) {
-					const auto& min_point = coord_data.item_bounds.point1;
-					const auto& scale = coord_data.scale;
+					auto const& min_point = coord_data.item_bounds.point1;
+					auto const& scale = coord_data.scale;
 					return coord_data.panel_bounds.GetHeight( ) - static_cast<int>((y - min_point.pos( ).y)*scale.y + coord_data.margins.bottom);
 				};
 
+				#if 0
 				auto get_unmapped_y = []( int y, const translation_t& coord_data ) {
-					const auto& min_point = coord_data.item_bounds.point1;
-					const auto& scale = coord_data.scale;
+					auto const& min_point = coord_data.item_bounds.point1;
+					auto const& scale = coord_data.scale;
 					return static_cast<int>(static_cast<daw::data::real_t>((coord_data.panel_bounds.GetHeight( )-y) - coord_data.margins.bottom) / scale.y) + min_point.pos( ).y;
 				};
+				#endif
 
 			}	//namespace anonymous
 		}	//namespace impl
 
 		namespace {
-			const int s_min_int = ::std::numeric_limits<int>::min( );
-			const int s_max_int = ::std::numeric_limits<int>::max( );
-
 			box_t rotate_by( box_t points, double angle ) {
-				const auto L( points.point2.pos( ).x - points.point1.pos( ).x );
+				auto const L( points.point2.pos( ).x - points.point1.pos( ).x );
 				if( 0 == L ) {
 					return points;	// Cannot rotate about a zero length box_t 
 				}
-				const auto H( points.point2.pos( ).y - points.point1.pos( ).y );
+				auto const H( points.point2.pos( ).y - points.point1.pos( ).y );
 
-				const auto D( sqrt( L*L + H*H ) );
-				const auto c( angle + atan2( H, L ) );
+				auto const D( sqrt( L*L + H*H ) );
+				auto const c( angle + atan2( H, L ) );
 				points.point2.pos( ).x = points.point1.pos( ).x + D*cos( c );
 				points.point2.pos( ).y = points.point1.pos( ).y + D*sin( c );
 				return ::std::move( points );
 			}
 
-			const auto s_epoch = boost::posix_time::time_from_string( "1970-01-01 00:00:00.000" );
+			auto const s_epoch = boost::posix_time::time_from_string( "1970-01-01 00:00:00.000" );
 
 		}	// namespace anonymous
 		point_t::point_t( int x, int y, int8_t off_x, int8_t off_y, bool x_unmapped, bool y_unmapped ):
@@ -125,7 +126,7 @@ namespace daw {
 			return{ m_x_offset, m_y_offset };
 		}
 
-		wxPoint point_t::mapped_point( const point_t& point, const translation_t& coord_data ) {
+		wxPoint point_t::mapped_point( point_t const& point, const translation_t& coord_data ) {
 			wxPoint result( point.pos( ) );
 			if( !point.get_unmapped_x( ) ) {
 				result.x = impl::get_mapped_x( result.x, coord_data );
@@ -133,7 +134,7 @@ namespace daw {
 			if( !point.get_unmapped_y( ) ) {
 				result.y = impl::get_mapped_y( result.y, coord_data );
 			}
-			const auto& offset = point.get_offset( );
+			auto const& offset = point.get_offset( );
 			result.x += offset.x;
 			result.y -= offset.y;	// Panel y-axis is inverted
 			return ::std::move( result );
@@ -166,7 +167,7 @@ namespace daw {
 			m_y_unmapped = unmapped;
 		}
 
-		point_t& point_t::operator+=(const point_t& rhs) {
+		point_t& point_t::operator+=(point_t const& rhs) {
 			m_point += rhs.m_point;
 			m_x_offset += rhs.m_x_offset;
 			m_y_offset += rhs.m_y_offset;
@@ -175,124 +176,219 @@ namespace daw {
 			return *this;
 		}
 
-		point_t operator+(point_t lhs, const point_t& rhs) {
+		point_t operator+(point_t lhs, point_t const& rhs) {
 			lhs += rhs;
 			return ::std::move( lhs );
 		}
 
 		namespace impl {
-			PanelGenericPlotAction::~PanelGenericPlotAction( ) { }
+			PanelGenericPlotAction::~PanelGenericPlotAction{ } { }
 
-			class PanelGenericPlotActionPen: public PanelGenericPlotAction {
+			class PanelGenericPlotActionPen final: public PanelGenericPlotAction {
+				wxPen m_pen;
 			public:
-				PanelGenericPlotActionPen( wxPen pen ):PanelGenericPlotAction( ), m_pen( ::std::move( pen ) ) { }
+				PanelGenericPlotActionPen( wxPen pen ):
+					PanelGenericPlotAction{ },
+					m_pen{ ::std::move( pen ) } { }
 
-				virtual void do_plot( wxDC& dc, translation_t& ) {
+				~PanelGenericPlotActionPen( ) override;
+				PanelGenericPlotActionPen( PanelGenericPlotActionPen && ) = default;
+				PanelGenericPlotActionPen & operator=( PanelGenericPlotActionPen && ) = default;
+
+				PanelGenericPlotActionPen( ) = delete;
+				PanelGenericPlotActionPen( PanelGenericPlotActionPen const & ) = delete;
+				PanelGenericPlotActionPen & operator=( PanelGenericPlotActionPen const & ) = delete;
+
+				void do_plot( wxDC & dc, translation_t & ) override {
 					dc.SetPen( m_pen );
 				}
-			private:
-				const wxPen m_pen;
-			};
+			};	// PanelGenericPlotActionPen
 
-			class PanelGenericPlotActionFont: public PanelGenericPlotAction {
+			PanelGenericPlotActionPen::~PanelGenericPlotActionPen( ) { }
+
+			class PanelGenericPlotActionFont final: public PanelGenericPlotAction {
+				wxFont m_font;
 			public:
-				PanelGenericPlotActionFont( wxFont font ):PanelGenericPlotAction( ), m_font( ::std::move( font ) ) { }
+				PanelGenericPlotActionFont( wxFont font ):
+						PanelGenericPlotAction{ }, 
+						m_font{ ::std::move( font ) } { }
 
-				virtual void do_plot( wxDC& dc, translation_t& ) {
+				~PanelGenericPlotActionFont( ) override;
+				PanelGenericPlotActionFont( PanelGenericPlotActionFont && ) = default;
+				PanelGenericPlotActionFont & operator=( PanelGenericPlotActionFont && ) = default;
+
+				PanelGenericPlotActionFont( ) = delete;
+				PanelGenericPlotActionFont( PanelGenericPlotActionFont const & ) = delete;
+				PanelGenericPlotActionFont & operator=( PanelGenericPlotActionFont const & ) = delete;
+
+				void do_plot( wxDC & dc, translation_t & ) override {
 					dc.SetFont( m_font );
 				}
-			private:
-				const wxFont m_font;
-			};
+			};	// PanelGenericPlotActionFont
 
-			class PanelGenericPlotActionBrush: public PanelGenericPlotAction {
+			PanelGenericPlotActionFont::~PanelGenericPlotActionFont( ) { }
+
+			class PanelGenericPlotActionBrush final: public PanelGenericPlotAction {
+				wxBrush m_brush;
 			public:
-				PanelGenericPlotActionBrush( wxBrush brush ):PanelGenericPlotAction( ), m_brush( ::std::move( brush ) ) { }
+				PanelGenericPlotActionBrush( wxBrush brush ):
+						PanelGenericPlotAction{ }, 
+						m_brush{ ::std::move( brush ) } { }
 
-				virtual void do_plot( wxDC& dc, translation_t& ) {
+				~PanelGenericPlotActionBrush( ) override;
+				PanelGenericPlotActionBrush( PanelGenericPlotActionBrush && ) = default;
+				PanelGenericPlotActionBrush & operator=( PanelGenericPlotActionBrush && ) = default;
+
+				PanelGenericPlotActionBrush( ) = delete;
+				PanelGenericPlotActionBrush( PanelGenericPlotActionBrush const & ) = delete;
+				PanelGenericPlotActionBrush & operator=( PanelGenericPlotActionBrush const & ) = delete;
+
+				void do_plot( wxDC & dc, translation_t & ) override {
 					dc.SetBrush( m_brush );
 				}
-			private:
-				const wxBrush m_brush;
-			};
+			};	// PanelGenericPlotActionBrush
 
-			class PanelGenericPlotActionDrawText: public PanelGenericPlotAction {
+			PanelGenericPlotActionBrush::~PanelGenericPlotActionBrush( ) { }
+
+			class PanelGenericPlotActionDrawText final: public PanelGenericPlotAction {
+				wxString m_text;
+				point_t m_point;
 			public:
-				PanelGenericPlotActionDrawText( wxString text, point_t point ):PanelGenericPlotAction( ), m_text( ::std::move( text ) ), m_point( ::std::move( point ) ) { }
+				PanelGenericPlotActionDrawText( wxString text, point_t point ):
+						PanelGenericPlotAction{ }, 
+						m_text{ ::std::move( text ) },
+						m_point{ ::std::move( point ) } { }
 
-				virtual void do_plot( wxDC& dc, translation_t& coord_data ) {
+				~PanelGenericPlotActionDrawText( ) override;
+				PanelGenericPlotActionDrawText( PanelGenericPlotActionDrawText && ) = default;
+				PanelGenericPlotActionDrawText & operator=( PanelGenericPlotActionDrawText && ) = default;
+
+				PanelGenericPlotActionDrawText( ) = delete;
+				PanelGenericPlotActionDrawText( PanelGenericPlotActionDrawText const & ) = delete;
+				PanelGenericPlotActionDrawText & operator=( PanelGenericPlotActionDrawText const & ) = delete;
+
+				void do_plot( wxDC & dc, translation_t & coord_data ) override {
 					dc.DrawText( m_text, m_point.mapped_point( coord_data ) );
 				}
-			private:
-				const wxString m_text;
-				const point_t m_point;
-			};
+			};	// PanelGenericPlotActionDrawText
 
-			class PanelGenericPlotActionDrawRotatedText: public PanelGenericPlotAction {
+			PanelGenericPlotActionDrawText::~PanelGenericPlotActionDrawText( ) { }
+
+			class PanelGenericPlotActionDrawRotatedText final: public PanelGenericPlotAction {
+				wxString m_text;
+				point_t m_point;
+				double m_angle;
 			public:
-				PanelGenericPlotActionDrawRotatedText( wxString text, point_t point, double angle ): PanelGenericPlotAction( ), m_text( ::std::move( text ) ), m_point( ::std::move( point ) ), m_angle( ::std::move( angle ) ) { }
+				PanelGenericPlotActionDrawRotatedText( wxString text, point_t point, double angle ):
+						PanelGenericPlotAction{ }, 
+						m_text{ ::std::move( text ) }, m_point{ ::std::move( point ) },
+						m_angle{ ::std::move( angle ) } { }
 
-				virtual void do_plot( wxDC& dc, translation_t& coord_data ) {
+				~PanelGenericPlotActionDrawRotatedText( ) override;
+				PanelGenericPlotActionDrawRotatedText( PanelGenericPlotActionDrawRotatedText && ) = default;
+				PanelGenericPlotActionDrawRotatedText & operator=( PanelGenericPlotActionDrawRotatedText && ) = default;
+
+				PanelGenericPlotActionDrawRotatedText( ) = delete;
+				PanelGenericPlotActionDrawRotatedText( PanelGenericPlotActionDrawRotatedText const & ) = delete;
+				PanelGenericPlotActionDrawRotatedText & operator=( PanelGenericPlotActionDrawRotatedText const & ) = delete;
+
+				void do_plot( wxDC & dc, translation_t & coord_data ) override {
 					dc.DrawRotatedText( m_text, m_point.mapped_point( coord_data ), m_angle );
 				}
-			private:
-				const wxString m_text;
-				const point_t m_point;
-				const double m_angle;
-			};
+			};	// PanelGenericPlotActionDrawRotatedText
 
-			class PanelGenericPlotActionDrawLine: public PanelGenericPlotAction {
+			PanelGenericPlotActionDrawRotatedText::~PanelGenericPlotActionDrawRotatedText( ) { }
+
+			class PanelGenericPlotActionDrawLine final: public PanelGenericPlotAction {
+				point_t m_point1;
+				point_t m_point2;
 			public:
-				PanelGenericPlotActionDrawLine( point_t p1, point_t p2 ): PanelGenericPlotAction( ), m_point1( ::std::move( p1 ) ), m_point2( ::std::move( p2 ) ) { }
+				PanelGenericPlotActionDrawLine( point_t p1, point_t p2 ): 
+						PanelGenericPlotAction{ }, 
+						m_point1{ ::std::move( p1 ) }, 
+						m_point2{ ::std::move( p2 ) } { }
 
-				virtual void do_plot( wxDC& dc, translation_t& coord_data ) {
+				~PanelGenericPlotActionDrawLine( ) override;
+				PanelGenericPlotActionDrawLine( PanelGenericPlotActionDrawLine && ) = default;
+				PanelGenericPlotActionDrawLine & operator=( PanelGenericPlotActionDrawLine && ) = default;
+
+				PanelGenericPlotActionDrawLine( ) = delete;
+				PanelGenericPlotActionDrawLine( PanelGenericPlotActionDrawLine const & ) = delete;
+				PanelGenericPlotActionDrawLine & operator=( PanelGenericPlotActionDrawLine const & ) = delete;
+
+				void do_plot( wxDC & dc, translation_t & coord_data ) override {
 					dc.DrawLine( m_point1.mapped_point( coord_data ), m_point2.mapped_point( coord_data ) );
 				}
-			private:
-				const point_t m_point1;
-				const point_t m_point2;
-			};
+			};	// PanelGenericPlotActionDrawLine
 
-			class PanelGenericPlotActionDrawLines: public PanelGenericPlotAction {
+			PanelGenericPlotActionDrawLine::~PanelGenericPlotActionDrawLine( ) { }
+
+			class PanelGenericPlotActionDrawLines final: public PanelGenericPlotAction {
+				::std::vector<point_t> m_points;
 			public:
-				PanelGenericPlotActionDrawLines( ::std::vector<point_t> points ):PanelGenericPlotAction( ), m_points( ::std::move( points ) ) { }
+				PanelGenericPlotActionDrawLines( ::std::vector<point_t> points ):
+						PanelGenericPlotAction{ }, 
+						m_points{ ::std::move( points ) } { }
 
-				virtual void do_plot( wxDC& dc, translation_t& coord_data ) {
+				PanelGenericPlotActionDrawLines( ) = delete;
+				~PanelGenericPlotActionDrawLines( ) override;
+				PanelGenericPlotActionDrawLines( PanelGenericPlotActionDrawLines const & ) = delete;
+				PanelGenericPlotActionDrawLines & operator=( PanelGenericPlotActionDrawLines const & ) = delete;
+				PanelGenericPlotActionDrawLines( PanelGenericPlotActionDrawLines && ) = default;
+				PanelGenericPlotActionDrawLines & operator=( PanelGenericPlotActionDrawLines && ) = default;
+
+				void do_plot( wxDC & dc, translation_t & coord_data ) override {
 					::std::vector<wxPoint> points;
 					points.reserve( m_points.size( ) );
-					for( const auto& point : m_points ) {
+					for( auto const & point : m_points ) {
 						points.emplace_back( point.mapped_point( coord_data ) );
 					}
 					dc.DrawLines( points.size( ), daw::algorithm::to_array( points ) );
 				}
-			private:
-				const ::std::vector<point_t> m_points;
-			};
+			};	// PanelGenericPlotActionDrawLines
 
-			class PanelGenericPlotActionDrawPolygon: public PanelGenericPlotAction {
+			PanelGenericPlotActionDrawLines::~PanelGenericPlotActionDrawLines( ) { }
+
+
+			class PanelGenericPlotActionDrawPolygon final: public PanelGenericPlotAction {
+				::std::vector<point_t> const m_points;
+
 			public:
-				PanelGenericPlotActionDrawPolygon( ::std::vector<point_t> points ):PanelGenericPlotAction( ), m_points( ::std::move( points ) ) { }
+				PanelGenericPlotActionDrawPolygon( ::std::vector<point_t> points ):
+						PanelGenericPlotAction{ }, 
+						m_points{ ::std::move( points ) } { }
 
-				virtual void do_plot( wxDC& dc, translation_t& coord_data ) {
+				PanelGenericPlotActionDrawPolygon( ) = delete;
+				PanelGenericPlotActionDrawPolygon( PanelGenericPlotActionDrawPolygon const & ) = delete;	
+				PanelGenericPlotActionDrawPolygon & operator=( PanelGenericPlotActionDrawPolygon const & ) = delete;	
+				PanelGenericPlotActionDrawPolygon( PanelGenericPlotActionDrawPolygon && ) = default;	
+				PanelGenericPlotActionDrawPolygon & operator=( PanelGenericPlotActionDrawPolygon && ) = default;
+				~PanelGenericPlotActionDrawPolygon( ) override; 
+
+				void do_plot( wxDC & dc, translation_t & coord_data ) override {
 					::std::vector<wxPoint> points;
 					points.reserve( m_points.size( ) );
-					for( const auto& point : m_points ) {
-						points.emplace_back( point.mapped_point( coord_data ) );
-					}
+
+					std::transform( m_points.begin( ), m_points.end( ), std::back_inserter( points ), [&coord_data]( auto const & point ) {
+						return point.mapped_point( coord_data );
+					} );
+
 					dc.DrawPolygon( points.size( ), daw::algorithm::to_array( points ) );
 				}
-			private:
-				const ::std::vector<point_t> m_points;
-			};
+			};	// PanelGenericPlotActionDrawPolygon
+
+			PanelGenericPlotActionDrawPolygon::~PanelGenericPlotActionDrawPolygon( ) { }
 		}	// namespace impl
 
-		PanelGenericPlotter::PanelGenericPlotter( ): m_coord_data( ), m_actions( ) { }
+		PanelGenericPlotter::PanelGenericPlotter( ): 
+				m_coord_data( ), 
+				m_actions( ) { }
 
 		translation_t& PanelGenericPlotter::coord_data( ) {
 			return m_coord_data;
 		}
 
-		const translation_t& PanelGenericPlotter::coord_data( ) const {
+		translation_t const & PanelGenericPlotter::coord_data( ) const {
 			return m_coord_data;
 		}
 
@@ -309,7 +405,7 @@ namespace daw {
 			m_actions.emplace_back( ::std::unique_ptr<impl::PanelGenericPlotAction>( new impl::PanelGenericPlotActionBrush( ::std::move( brush ) ) ) );
 		}
 
-		point_t PanelGenericPlotter::get_text_size( const wxString& text ) const {
+		point_t PanelGenericPlotter::get_text_size( wxString const & text ) const {
 			point_t bounds;
 			wxMemoryDC dc;
 			wxCoord zero{ 0 };
@@ -317,7 +413,7 @@ namespace daw {
 			return ::std::move( bounds );
 		}
 
-		box_t PanelGenericPlotter::get_rotated_text_size( const wxString& text, double angle ) const {
+		box_t PanelGenericPlotter::get_rotated_text_size( wxString const & text, double angle ) const {
 			point_t point2;
 			wxMemoryDC dc;
 			wxCoord zero{ 0 };
@@ -342,21 +438,21 @@ namespace daw {
 
 		void PanelGenericPlotter::draw_lines( ::std::vector<point_t> points ) {
 			daw::exception::dbg_throw_on_false( 2 <= points.size( ), ": Must specify at least two points" );
-			for( const auto& point : points ) {
+			for( auto const& point : points ) {
 				check_minmax( point );
 			}
 			m_actions.emplace_back( ::std::unique_ptr<impl::PanelGenericPlotAction>( new impl::PanelGenericPlotActionDrawLines( ::std::move( points ) ) ) );
 		}
 
 		void PanelGenericPlotter::draw_polygon( ::std::vector<point_t> points ) {
-			for( const auto& point : points ) {
+			for( auto const& point : points ) {
 				check_minmax( point );
 			}
 			m_actions.emplace_back( ::std::unique_ptr<impl::PanelGenericPlotAction>( new impl::PanelGenericPlotActionDrawPolygon( ::std::move( points ) ) ) );
 		}
 
 		void PanelGenericPlotter::check_minmax( point_t pt ) {
-			const auto& point = pt.pos( );
+			auto const& point = pt.pos( );
 			auto& point1 = m_coord_data.item_bounds.point1.pos( );
 			auto& point2 = m_coord_data.item_bounds.point2.pos( );
 			if( point.x < point1.x ) {
@@ -378,18 +474,18 @@ namespace daw {
 			check_minmax( points.point2 );
 		}
 
-		void PanelGenericPlotter::update_scale( const wxSize& bounds ) {
-			m_coord_data.panel_bounds = bounds;
+		void PanelGenericPlotter::update_scale( wxSize bounds ) {
+			m_coord_data.panel_bounds = std::move( bounds );
 			m_coord_data.scale.x = static_cast<float>(bounds.GetWidth( ) - coord_data( ).margins.width( )) / static_cast<float>(m_coord_data.item_bounds.width( ));
 			m_coord_data.scale.y = static_cast<float>(bounds.GetHeight( ) - coord_data( ).margins.height( )) / static_cast<float>(m_coord_data.item_bounds.height( ));
 		}
 
-		void PanelGenericPlotter::plot( wxDC& dc, wxSize bounds ) {
+		void PanelGenericPlotter::plot( wxDC & dc, wxSize bounds ) {
 			dc.SetAxisOrientation( true, false );
 			dc.SetLogicalOrigin( 0, 0 );
 			dc.SetMapMode( wxMM_TEXT );
 			dc.SetBackgroundMode( wxTRANSPARENT );
-			update_scale( bounds );
+			update_scale( std::move( bounds ) );
 			for( auto& action : m_actions ) {
 				action->do_plot( dc, m_coord_data );
 			}
@@ -402,14 +498,14 @@ namespace daw {
 			m_actions.clear( );
 		}
 
-		void draw_mmol_y_axis( PanelGenericPlotter& gen_plot, graph_config_t graph_config, float at_least_y_values ) {
+		void draw_mmol_y_axis( PanelGenericPlotter & gen_plot, graph_config_t graph_config, float at_least_y_values ) {
 			// Y-Axis
-			const auto& min_point( graph_config.coord_data.item_bounds.point1 );
-			const point_t max_point{ daw::math::value_or_min( graph_config.coord_data.item_bounds.point2.pos( ).x, 100 ), daw::math::value_or_min( graph_config.coord_data.item_bounds.point2.pos( ).y, static_cast<int>(at_least_y_values*10.0) ) };
-			const auto min_y( static_cast<int>(daw::math::floor_by( min_point.pos( ).y - 10, 10.0 )) );
-			const auto max_y( static_cast<int>(daw::math::ceil_by( max_point.pos( ).y + 10, 10.0 )) );
-			const auto& min_x = min_point.pos( ).x;
-			const auto& max_x = max_point.pos( ).x;
+			auto const & min_point( graph_config.coord_data.item_bounds.point1 );
+			point_t const max_point{ daw::math::value_or_min( graph_config.coord_data.item_bounds.point2.pos( ).x, 100 ), daw::math::value_or_min( graph_config.coord_data.item_bounds.point2.pos( ).y, static_cast<int>(at_least_y_values*10.0) ) };
+			auto const min_y( static_cast<int>(daw::math::floor_by( min_point.pos( ).y - 10, 10.0 )) );
+			auto const max_y( static_cast<int>(daw::math::ceil_by( max_point.pos( ).y + 10, 10.0 )) );
+			auto const & min_x = min_point.pos( ).x;
+			auto const & max_x = max_point.pos( ).x;
 			
 			gen_plot.set_pen( graph_config.pen_axis_y );
 			gen_plot.draw_line( point_t( min_x, min_y ), point_t( min_x, max_y ) );	// Y-axis
@@ -425,8 +521,8 @@ namespace daw {
 						gen_plot.set_font( graph_config.fnt_axis_title );
 					}
 					gen_plot.set_pen( graph_config.pen_axis_y );
-					const point_t p_left( min_x, cur_y, -2 );
-					const point_t p_right( min_x, cur_y, 2 );
+					point_t const p_left( min_x, cur_y, -2 );
+					point_t const p_right( min_x, cur_y, 2 );
 					gen_plot.draw_line( p_left, p_right );
 
 					if( cur_y >= max_y ) {
@@ -436,36 +532,36 @@ namespace daw {
 							cur_label += " " + graph_config.axis_title_y;
 						}
 					}
-					const point_t p_text( min_x, cur_y, 4, gen_plot.get_text_size( cur_label ).pos( ).y / 2 );
+					point_t const p_text( min_x, cur_y, 4, gen_plot.get_text_size( cur_label ).pos( ).y / 2 );
 					gen_plot.draw_text( cur_label, p_text );
 				}
 			}
 		}
 
-		void draw_24hr_x_axis( PanelGenericPlotter& gen_plot, int increment_size, graph_config_t graph_config, float at_least_y_values ) {
+		void draw_24hr_x_axis( PanelGenericPlotter & gen_plot, int increment_size, graph_config_t graph_config, float at_least_y_values ) {
 //			increment_size;
-			const auto& min_point( graph_config.coord_data.item_bounds.point1 );
-			const point_t max_point{ daw::math::value_or_min( graph_config.coord_data.item_bounds.point2.pos( ).x, 100 ), daw::math::value_or_min( graph_config.coord_data.item_bounds.point2.pos( ).y, static_cast<int>(at_least_y_values*10.0) ) };
-			const auto min_y( static_cast<int>(daw::math::floor_by( min_point.pos( ).y - 10, 10.0 )) );
-			const auto max_y( static_cast<int>(daw::math::ceil_by( max_point.pos( ).y + 10, 10.0 )) );
-			const auto& min_x = min_point.pos( ).x;
-			const auto& max_x = max_point.pos( ).x;
+			auto const & min_point( graph_config.coord_data.item_bounds.point1 );
+			point_t const max_point{ daw::math::value_or_min( graph_config.coord_data.item_bounds.point2.pos( ).x, 100 ), daw::math::value_or_min( graph_config.coord_data.item_bounds.point2.pos( ).y, static_cast<int>(at_least_y_values*10.0) ) };
+			auto const min_y( static_cast<int>(daw::math::floor_by( min_point.pos( ).y - 10, 10.0 )) );
+			auto const max_y( static_cast<int>(daw::math::ceil_by( max_point.pos( ).y + 10, 10.0 )) );
+			auto const & min_x = min_point.pos( ).x;
+			auto const & max_x = max_point.pos( ).x;
 
 			gen_plot.set_pen( graph_config.pen_axis_y );
 			gen_plot.draw_line( point_t( min_x, min_y ), point_t( max_x, min_y ) );	// X-axis
 			
 			if( !graph_config.axis_title_x.empty( ) ) {
-				const auto off = gen_plot.get_text_size( graph_config.axis_title_x ).pos( );
+				auto const off = gen_plot.get_text_size( graph_config.axis_title_x ).pos( );
 				gen_plot.coord_data( ).margins.right += off.x;
 				gen_plot.draw_text( wxString( graph_config.axis_title_x ), point_t( max_x, min_y, 2, off.y / 2 ) );
 			}
 
-			const auto total_increments = 24 * (60 / increment_size);
+			auto const total_increments = 24 * (60 / increment_size);
 			for( auto n = 1; n < total_increments; ++n ) {
-				const int x = n * increment_size;
-				const point_t p_mid( x, min_y );
-				const point_t p_low( x, min_y, 0, -2 );
-				const point_t p_high( x, min_y, 0, 2 );
+				int const x = n * increment_size;
+				point_t const p_mid( x, min_y );
+				point_t const p_low( x, min_y, 0, -2 );
+				point_t const p_high( x, min_y, 0, 2 );
 
 				gen_plot.set_pen( graph_config.pen_axis_y );
 				gen_plot.draw_line( p_low, p_high );
@@ -475,33 +571,33 @@ namespace daw {
 
 				if( 0 == ts.time_of_day( ).minutes( ) ) {
 					gen_plot.set_pen( graph_config.pen_axis_dotted );
-					const point_t p_high_dot( x, max_y );
+					point_t const p_high_dot( x, max_y );
 					gen_plot.draw_line( p_high, p_high_dot );
 					gen_plot.set_font( graph_config.fnt_axis_title_bold );
 				} else {
 					gen_plot.set_font( graph_config.fnt_axis_title );
 				}
 				const ::std::string cur_label( daw::string::ptime_to_string( ts, "%H:%M" ) );
-				const auto y_off = gen_plot.get_text_size( cur_label ).pos( ).y;
-				const point_t p_text( x, min_y, 0 - (y_off / 2), 6 + y_off / 2 );
+				auto const y_off = gen_plot.get_text_size( cur_label ).pos( ).y;
+				point_t const p_text( x, min_y, 0 - (y_off / 2), 6 + y_off / 2 );
 
 				gen_plot.draw_rotated_text( wxString( cur_label ), p_text, 45.0 );
 			}
 		}
 
 		void draw_ts_x_axis( PanelGenericPlotter& gen_plot, const daw::data::DataTable::value_type& ts_col, size_t start, size_t finish, graph_config_t graph_config, float at_least_y_values ) {
-			const auto& min_point( graph_config.coord_data.item_bounds.point1 );
-			const point_t max_point{ daw::math::value_or_min( graph_config.coord_data.item_bounds.point2.pos( ).x, 100 ), daw::math::value_or_min( graph_config.coord_data.item_bounds.point2.pos( ).y, static_cast<int>(at_least_y_values*10.0) ) };
-			const auto min_y( static_cast<int>(daw::math::floor_by( min_point.pos( ).y - 10, 10.0 )) );
-			const auto max_y( static_cast<int>(daw::math::ceil_by( max_point.pos( ).y + 10, 10.0 )) );
-			const auto& min_x = min_point.pos( ).x;
-			const auto& max_x = max_point.pos( ).x;
+			auto const& min_point( graph_config.coord_data.item_bounds.point1 );
+			point_t const max_point{ daw::math::value_or_min( graph_config.coord_data.item_bounds.point2.pos( ).x, 100 ), daw::math::value_or_min( graph_config.coord_data.item_bounds.point2.pos( ).y, static_cast<int>(at_least_y_values*10.0) ) };
+			auto const min_y( static_cast<int>(daw::math::floor_by( min_point.pos( ).y - 10, 10.0 )) );
+			auto const max_y( static_cast<int>(daw::math::ceil_by( max_point.pos( ).y + 10, 10.0 )) );
+			auto const& min_x = min_point.pos( ).x;
+			auto const& max_x = max_point.pos( ).x;
 
 
 			gen_plot.set_pen( graph_config.pen_axis_x );
 			gen_plot.draw_line( point_t( min_x, min_y ), point_t( max_x, min_y ) );	// X-axis
 			if( !graph_config.axis_title_x.empty( ) ) {
-				const auto off = gen_plot.get_text_size( graph_config.axis_title_x ).pos( );
+				auto const off = gen_plot.get_text_size( graph_config.axis_title_x ).pos( );
 				gen_plot.coord_data( ).margins.right += off.x;
 				gen_plot.draw_text( wxString( graph_config.axis_title_x ), point_t( max_x, min_y, 2, off.y / 2 ) );
 			}
@@ -510,8 +606,8 @@ namespace daw {
 				gen_plot.set_font( graph_config.fnt_axis_title );
 				bool is_first = true;
 				for( size_t n = start; n <= finish; ++n ) {
-					const auto& ts( ts_col[n].timestamp( ) );
-					const auto x( (ts - s_epoch).total_seconds( ) / 60 );
+					auto const& ts( ts_col[n].timestamp( ) );
+					auto const x( (ts - s_epoch).total_seconds( ) / 60 );
 					::std::string cur_label;
 
 					if( 0 == ts.time_of_day( ).hours( ) && 0 == ts.time_of_day( ).minutes( ) ) {
@@ -546,8 +642,8 @@ namespace daw {
 					}
 
 					if( 0 != cur_label.size( ) ) {
-						const auto y_off = gen_plot.get_text_size( cur_label ).pos( ).y;
-						const point_t p_text( x, min_y, 0 - (y_off / 2), 6 + y_off / 2 );
+						auto const y_off = gen_plot.get_text_size( cur_label ).pos( ).y;
+						point_t const p_text( x, min_y, 0 - (y_off / 2), 6 + y_off / 2 );
 						gen_plot.draw_rotated_text( wxString( cur_label ), p_text, 45.0 );
 					}
 				}

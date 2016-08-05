@@ -35,7 +35,9 @@
 // PumpDataAnalysisFrame
 // ---------------------------------------------------------------------------
 
-FramePumpDataAnalysis::FramePumpDataAnalysis( wxApp* app ): wxMDIParentFrame( nullptr, wxID_ANY, "Pump Data Analysis (c) 2014 Darrell Wright - ", wxDefaultPosition, wxSize( 800, 600 ) ), m_wxapp( app ) {
+FramePumpDataAnalysis::FramePumpDataAnalysis( wxApp * app ): 
+		wxMDIParentFrame( nullptr, wxID_ANY, "Pump Data Analysis (c) 2014 Darrell Wright - ", wxDefaultPosition, wxSize( 800, 600 ) ),
+		m_wxapp( app ) {
 //	SetIcon( wxICON( sample ) );
 	SetMenuBar( create_menu_bar( ) );
 
@@ -60,7 +62,7 @@ FramePumpDataAnalysis::FramePumpDataAnalysis( wxApp* app ): wxMDIParentFrame( nu
 	SetAcceleratorTable( accel );
 }
 
-wxMenuBar *FramePumpDataAnalysis::create_menu_bar( ) {
+wxMenuBar * FramePumpDataAnalysis::create_menu_bar( ) {
 	auto menuFile = new wxMenu( );
 	menuFile->Append( wxID_OPEN, "&Open\tCtrl-O", "Open datafile" );
 	menuFile->Append( wxID_EXIT, "&Exit\tAlt-X", "Quit the program" );
@@ -75,8 +77,8 @@ wxMenuBar *FramePumpDataAnalysis::create_menu_bar( ) {
 	return mbar;
 }
 
-void FramePumpDataAnalysis::on_close( wxCloseEvent& event ) {
-	unsigned numChildren = PanelPumpDataAnalyis::GetChildrenCount( );
+void FramePumpDataAnalysis::on_close( wxCloseEvent & event ) {
+	auto numChildren = PanelPumpDataAnalyis::GetChildrenCount( );
 	if( event.CanVeto( ) && (numChildren > 0) ) {
 		wxString msg;
 		msg.Printf( "%d windows still open, close anyhow?", numChildren );
@@ -88,16 +90,16 @@ void FramePumpDataAnalysis::on_close( wxCloseEvent& event ) {
 	event.Skip( );
 }
 
-void FramePumpDataAnalysis::on_quit( wxCommandEvent& ) {
+void FramePumpDataAnalysis::on_quit( wxCommandEvent & ) {
 	Close( );
 }
 
-void FramePumpDataAnalysis::on_about( wxCommandEvent& ) {
+void FramePumpDataAnalysis::on_about( wxCommandEvent & ) {
 	wxMessageBox( "Pump Data Analysis\nAuthor: Darrell Wright (c) 2014\n", "About Pump Data Analysis" );
 }
 
-void FramePumpDataAnalysis::on_file_open( wxCommandEvent& ) {
-	wxFileDialog openFileDialog( this, _( "Open Pump Data File" ), "", "", "Medtronic Carelink CSV Export files (*.csv)|*.csv", wxFD_OPEN | wxFD_FILE_MUST_EXIST );
+void FramePumpDataAnalysis::on_file_open( wxCommandEvent & ) {
+	wxFileDialog openFileDialog{ this, _( "Open Pump Data File" ), "", "", "Medtronic Carelink CSV Export files (*.csv)|*.csv", wxFD_OPEN | wxFD_FILE_MUST_EXIST };
 	if( wxID_CANCEL == openFileDialog.ShowModal( ) ) {
 		return;
 	}
@@ -107,8 +109,8 @@ void FramePumpDataAnalysis::on_file_open( wxCommandEvent& ) {
 	Unused( subframe );
 }
 
-void FramePumpDataAnalysis::on_close_all( wxCommandEvent& ) {
-	for( auto& child : GetChildren( ) ) {
+void FramePumpDataAnalysis::on_close_all( wxCommandEvent & ) {
+	for( auto & child: GetChildren( ) ) {
 		if( wxDynamicCast( child, wxMDIChildFrame ) ) {
 			child->Close( );
 		}
@@ -121,9 +123,10 @@ void FramePumpDataAnalysis::on_size( wxSizeEvent& ) { }
 // event tables
 // ---------------------------------------------------------------------------
 BEGIN_EVENT_TABLE( FramePumpDataAnalysis, wxMDIParentFrame )
-EVT_MENU( wxID_ABOUT, FramePumpDataAnalysis::on_about )
-EVT_MENU( wxID_OPEN, FramePumpDataAnalysis::on_file_open )
-EVT_MENU( wxID_EXIT, FramePumpDataAnalysis::on_quit )
-EVT_MENU( wxID_CLOSE_ALL, FramePumpDataAnalysis::on_close_all )
-EVT_CLOSE( FramePumpDataAnalysis::on_close )
+	EVT_MENU( wxID_ABOUT, FramePumpDataAnalysis::on_about )
+	EVT_MENU( wxID_OPEN, FramePumpDataAnalysis::on_file_open )
+	EVT_MENU( wxID_EXIT, FramePumpDataAnalysis::on_quit )
+	EVT_MENU( wxID_CLOSE_ALL, FramePumpDataAnalysis::on_close_all )
+	EVT_CLOSE( FramePumpDataAnalysis::on_close )
 END_EVENT_TABLE( )
+

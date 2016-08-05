@@ -36,19 +36,22 @@ using daw::pumpdataanalysis::point_t;
 using daw::pumpdataanalysis::PanelGenericPlotter;
 
 namespace {
-	const auto s_epoch = boost::posix_time::time_from_string( "1970-01-01 00:00:00.000" );
+	auto get_epoch( ) {
+		static auto const s_epoch = boost::posix_time::time_from_string( "1970-01-01 00:00:00.000" );
+		return s_epoch;
+	}
 
 	void setup_graph( daw::pumpdataanalysis::PanelGenericPlotter& gen_plot, const daw::data::DataTable& data, size_t data_first, size_t data_last, daw::pumpdataanalysis::graph_config_t graph_config ) {
 		// Setup plot
 		gen_plot.coord_data( ).margins.set_all( 15 );
 
-		const auto& bg_col = data["Sensor Glucose (mmol/L)"];
-		const auto& ts_col = data["Timestamp"];
+		auto const& bg_col = data["Sensor Glucose (mmol/L)"];
+		auto const& ts_col = data["Timestamp"];
 
-		//const auto timespan = ts_cozl[m_data_last].timestamp( ) - ts_col[m_data_first].timestamp( );
+		//auto const timespan = ts_cozl[m_data_last].timestamp( ) - ts_col[m_data_first].timestamp( );
 
 		// Draw graph
-		const auto start = [&]( ) {
+		auto const start = [&]( ) {
 			auto result = data_first;
 			while( bg_col[result].empty( ) ) {
 				++result;
@@ -62,8 +65,8 @@ namespace {
 			::std::vector<point_t> points;
 			for( auto row = start; row <= data_last; ++row ) {
 				if( bg_col[row] ) {
-					const auto x( (ts_col[row].timestamp( ) - s_epoch).total_seconds( ) / 60 );
-					const auto y( static_cast<int>(bg_col[row].real( )*10.0) );
+					auto const x( (ts_col[row].timestamp( ) - get_epoch( )).total_seconds( ) / 60 );
+					auto const y( static_cast<int>(bg_col[row].real( )*10.0) );
 					points.emplace_back( point_t{ x, y } );
 					finish = row;
 				}
@@ -75,7 +78,7 @@ namespace {
 		}
 
 		
-		const auto min_point( gen_plot.coord_data( ).item_bounds.point1 );
+		auto const min_point( gen_plot.coord_data( ).item_bounds.point1 );
 		const point_t max_point{ value_or_min( gen_plot.coord_data( ).item_bounds.point2.pos( ).x, 100 ), value_or_min( gen_plot.coord_data( ).item_bounds.point2.pos( ).y, 120 ) };
 		// Y-Axis
 		graph_config.coord_data = gen_plot.coord_data( );

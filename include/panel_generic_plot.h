@@ -36,27 +36,7 @@ namespace daw {
 	namespace pumpdataanalysis {
 		struct translation_t;
 
-		struct point_t {
-			explicit point_t( int x = 0, int y = 0, int8_t off_x = 0, int8_t off_y = 0, bool x_unmapped = false, bool y_unmapped = false );
-
-			wxPoint& pos( );
-			const wxPoint& pos( ) const;
-
-			wxPoint get_offset( ) const;
-			void set_offset( const wxPoint& offset );
-
-			bool get_unmapped_x( ) const;
-			bool get_unmapped_y( ) const;
-
-			void set_unmapped_x( bool unmapped );
-			void set_unmapped_y( bool unmapped );
-
-			wxPoint mapped_point( const translation_t& coord_data ) const;
-			static wxPoint mapped_point( const point_t& point, const translation_t& coord_data );
-
-			point_t& operator+=(const point_t& rhs);
-
-		private:
+		class point_t final {
 			wxPoint m_point;			
 			union {
 				struct {
@@ -68,8 +48,34 @@ namespace daw {
 				};
 				uintptr_t m_bitfield;
 			};
-		};
-		point_t operator+(point_t lhs, const point_t& rhs);
+		public:
+			explicit point_t( int x = 0, int y = 0, int8_t off_x = 0, int8_t off_y = 0, bool x_unmapped = false, bool y_unmapped = false );
+			point_t( point_t const & ) = default;
+			point_t( point_t && ) = default;
+			point_t & operator=( point_t const & ) = default;
+			point_t & operator=( point_t && ) = default;
+			~point_t( ) = default;
+
+			wxPoint& pos( );
+			wxPoint const & pos( ) const;
+
+			wxPoint get_offset( ) const;
+			void set_offset( wxPoint const & offset );
+
+			bool get_unmapped_x( ) const;
+			bool get_unmapped_y( ) const;
+
+			void set_unmapped_x( bool unmapped );
+			void set_unmapped_y( bool unmapped );
+
+			wxPoint mapped_point( translation_t const & coord_data ) const;
+			static wxPoint mapped_point( point_t const & point, translation_t const & coord_data );
+
+			point_t& operator+=( point_t const & rhs);
+
+		};	// point_t
+
+		point_t operator+(point_t lhs, point_t const & rhs);
 
 		struct box_t {
 			point_t point1;
@@ -128,15 +134,17 @@ namespace daw {
 
 		namespace impl {
 			struct PanelGenericPlotAction {
-				typedef ::std::function<int( int, const translation_t& )> mapping_cb_t;
-				virtual ~PanelGenericPlotAction( );
-				virtual void do_plot( wxDC&, translation_t& ) = 0;
-
-				wxPoint map_point( point_t point, translation_t& translate_data ) const;
+				using mapping_cb_t = ::std::function<int( int, translation_t const & )>;
 			private:
 				mapping_cb_t mf_map_x;
 				mapping_cb_t mf_map_y;
-			};
+			public:
+				virtual ~PanelGenericPlotAction( );
+				virtual void do_plot( wxDC &, translation_t & ) = 0;
+
+				wxPoint map_point( point_t point, translation_t& translate_data ) const;
+			};	// PanelGenericPlotAction
+
 		}	// namespace impl
 		/////////////////////////////////////////////////////////////////////////////////////////////
 		/// <summary>Takes all the data and adjusts bounds and scaling based on the extents of the data</summary>
@@ -156,7 +164,7 @@ namespace daw {
 			void draw_line( point_t p1, point_t p2 );
 			void draw_lines( ::std::vector<point_t> points );
 			void draw_polygon( ::std::vector<point_t> points );
-			void update_scale( const wxSize& bounds );
+			void update_scale( wxSize bounds );
 			void plot( wxDC& dc, wxSize bounds );
 			void clear( );
 			int get_mapped_x( int x ) const;

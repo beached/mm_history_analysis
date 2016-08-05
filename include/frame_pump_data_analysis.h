@@ -33,25 +33,24 @@ enum {
 };
 
 // Define a new frame
-class PanelPumpDataAnalyis;
+struct PanelPumpDataAnalyis;
 
 class FramePumpDataAnalysis: public wxMDIParentFrame {
-public:
-	FramePumpDataAnalysis( wxApp* app );
-	static wxMenuBar *create_menu_bar( );
+	void on_size( wxSizeEvent & event );
+	void on_about( wxCommandEvent & event );
+	void on_file_open( wxCommandEvent & event );
+	void on_fullscreen( wxCommandEvent & event );
+	void on_quit( wxCommandEvent & event );
+	void on_close_all( wxCommandEvent & event );
 
-private:
-	void on_size( wxSizeEvent& event );
-	void on_about( wxCommandEvent& event );
-	void on_file_open( wxCommandEvent& event );
-	void on_fullscreen( wxCommandEvent& event );
-	void on_quit( wxCommandEvent& event );
-	void on_close_all( wxCommandEvent& event );
+	void on_close( wxCloseEvent & event );
 
-	void on_close( wxCloseEvent& event );
-
-	wxApp* m_wxapp;
+	wxApp * m_wxapp;
 
 	DECLARE_EVENT_TABLE( )
+
+public:
+	FramePumpDataAnalysis( wxApp * app );
+	static wxMenuBar * create_menu_bar( );
 };
 
