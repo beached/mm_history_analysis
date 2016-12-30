@@ -24,7 +24,6 @@
 #include <daw/csv_helper/data_cell.h>
 #include <daw/csv_helper/data_table.h>
 #include <daw/daw_algorithm.h>
-#include <daw/daw_expected.h>
 
 #include "pump_data_analysis.h"
 
